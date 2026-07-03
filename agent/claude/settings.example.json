@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "defaultMode": "read-only",
+    "allow": [],
+    "deny": [
+      "write",
+      "execute",
+      "network"
+    ]
+  },
+  "note": "Template only. Review and approve permissions for each target project."
+}
