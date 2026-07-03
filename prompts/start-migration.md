@@ -1,3 +1,13 @@
+---
+type: start-prompt
+audience: human-ai
+language: ko
+tags:
+  - agent
+  - prompt
+  - light-mode
+---
+
 # 이관 시작 프롬프트 (Light 모드) — 이거 하나면 됩니다
 
 아래 "복사 시작 ~ 복사 끝" 사이를 복사해서 **빈칸 2개**를 채우고, 이관할 프로젝트를 연 AI(Claude Code / Codex)에 붙여넣는다.

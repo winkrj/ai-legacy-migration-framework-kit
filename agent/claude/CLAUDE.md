@@ -1,3 +1,14 @@
+---
+type: ai-instruction-template
+audience: ai
+language: en
+tags:
+  - ai-only
+  - agent
+  - claude
+  - template
+---
+
 # CLAUDE.md Template
 
 ## Role
