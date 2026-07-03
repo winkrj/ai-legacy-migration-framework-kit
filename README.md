@@ -4,7 +4,7 @@
 
 이 repository는 OpenSpec 기반 요구사항, migration documentation, AI Agent prompt와 safety policy를 함께 사용해 legacy migration을 일관되게 준비하는 Markdown-first Kit이다.
 
-**Status: Local Thin Bootstrap / Not Production Ready**
+**Status: Framework Kit v1 Draft / Not Production Ready**
 
 ## 이 Kit이 제공하는 것
 
@@ -16,6 +16,8 @@
 - Validator CLI adoption guide
 - Target project scaffold
 - Synthetic public-safe example skeleton
+- Runtime Evidence and Manual Verification templates
+- Project Convention extraction/adoption templates
 
 ## 이 Kit이 아닌 것
 
@@ -44,6 +46,37 @@ Validator CLI는 별도 repository의 private Git dependency로 사용하며 sou
 5. Validator CLI로 migration docs를 검사한다.
 6. 검증 결과와 남은 질문을 Archive 문서에 기록한다.
 
+## Teammate Guides
+
+- [Team Usage Guide](guides/team-usage-guide.md)
+- [Migration Docs Versioning Policy](guides/migration-docs-versioning-policy.md)
+- [Convention Adoption Guide](guides/convention-adoption-guide.md)
+
+## Runtime Evidence
+
+- [Runtime Evidence Template](templates/runtime-evidence/runtime-evidence-template.md)
+- [Manual Verification Checklist](templates/runtime-evidence/manual-verification-checklist-template.md)
+
+Runtime evidence는 실제 승인된 검증 결과만 기록하며 공개 또는 portfolio 사용 전에 sanitize한다. Evidence가 없으면 fake evidence를 만들지 않는다.
+
+## Project Conventions
+
+[Project Convention Templates](templates/conventions/00_Index.md)는 record/class, DTO, paging, layer responsibility, exception, date/time, testing과 AI Agent stop condition을 project별로 정리한다.
+
+Kit은 convention을 발명하지 않는다. AI Agent는 기존 code pattern과 반례로 draft를 만들고 Human이 승인한 뒤에만 binding rule로 사용한다.
+
+## Validation Mode
+
+Validate 문서는 다음 mode 중 실제 수행 방식만 기록한다.
+
+- `Test Verified`
+- `Manual Runtime Verified`
+- `Manual Evidence Pending`
+- `Review-only`
+- `Blocked by Environment`
+
+어떤 Validation Mode도 Production Readiness를 자동으로 의미하지 않는다.
+
 ## Safety Boundaries
 
 - 회사·내부 정보, credential과 실제 운영 식별자를 포함하지 않는다.
@@ -56,4 +89,4 @@ Validator CLI는 별도 repository의 private Git dependency로 사용하며 sou
 
 ## 현재 제한
 
-이 repository는 Phase 16-B local thin bootstrap이다. 실제 target project 적용, remote push, public conversion과 production use는 승인되지 않았다.
+이 repository는 실제 target-project review flow에 한 차례 적용된 private Framework Kit draft다. Private remote는 연결됐지만 public conversion과 production use/readiness는 승인되지 않았다.

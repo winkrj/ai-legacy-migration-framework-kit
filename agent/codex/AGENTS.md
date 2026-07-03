@@ -60,6 +60,18 @@ Allowed values:
 
 Missing Implementation Permission means `Not Allowed`.
 
+## Project Convention Rules
+
+Before modifying code:
+
+1. Find and inspect Human-approved project conventions.
+2. If conventions are missing, inspect repeated code/test patterns and counterexamples, then draft conventions using `templates/conventions/`.
+3. Do not invent conventions or promote a single observed pattern to a project-wide rule.
+4. Do not use a draft convention as a binding implementation rule.
+5. Stop for Human approval when convention status, scope, exception, or ownership is unclear.
+
+Project convention approval does not grant Implementation Permission.
+
 ## What You May Do
 
 - Read files within the authorized scope.
