@@ -50,6 +50,8 @@ Validator CLI는 별도 repository의 private Git dependency로 사용하며 sou
 
 ## Quick Start (Light 모드)
 
+> 처음이면 [따라하기 — Zip으로 받아서 첫 이관 한 사이클](guides/walkthrough-first-cycle.md)을 그대로 따라 하면 된다. Kit은 git clone 없이 **zip으로 받아도 된다** (Markdown 템플릿 모음이므로) — 받은 kit commit hash만 케이스 문서에 기록한다.
+
 1. 이관할 기능을 정하고 격리 브랜치를 만든다.
 2. `prompts/`의 discover prompt로 AI에게 레거시를 분석시킨다 → `01_Analysis.md`
 3. `02_Spec.md`에 이관 후 계약을 적고 **사람이 승인 체크**를 한다.
