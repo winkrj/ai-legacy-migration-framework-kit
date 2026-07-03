@@ -48,16 +48,17 @@ Validator CLI는 별도 repository의 private Git dependency로 사용하며 sou
 
 규칙은 두 모드 공통 3개: **레거시 read-only · 계약은 사람 승인 후 구현 · 격리 브랜치**.
 
-## Quick Start (Light 모드)
+## Quick Start (Light 모드) — 프롬프트 하나로 시작
 
-> 처음이면 [따라하기 — Zip으로 받아서 첫 이관 한 사이클](guides/walkthrough-first-cycle.md)을 그대로 따라 하면 된다. Kit은 git clone 없이 **zip으로 받아도 된다** (Markdown 템플릿 모음이므로) — 받은 kit commit hash만 케이스 문서에 기록한다.
+Kit은 git clone 없이 **zip으로 받아도 된다** (Markdown 템플릿 모음이므로). 받은 kit commit hash만 케이스 문서에 기록한다.
 
-1. 이관할 기능을 정하고 격리 브랜치를 만든다.
-2. `prompts/`의 discover prompt로 AI에게 레거시를 분석시킨다 → `01_Analysis.md`
-3. `02_Spec.md`에 이관 후 계약을 적고 **사람이 승인 체크**를 한다.
-4. 승인된 범위만 구현하고 테스트한다.
-5. `03_Result.md`에 한 것 / 못 한 것 / 롤백 방법을 기록한다.
+1. **받기**: Kit zip을 받고, 이관할 프로젝트를 AI(Claude Code / Codex)로 연다.
+2. **붙여넣기**: [`prompts/start-migration.md`](prompts/start-migration.md)의 프롬프트에 빈칸 2개(기능명, 레거시 경로)를 채워 붙여넣는다.
+   → AI가 브랜치 생성 → 레거시 분석(`01_Analysis.md`) → 스펙 초안(`02_Spec.md`)까지 만들고 **멈춘다.**
+3. **승인**: `02_Spec.md`의 결정 항목을 채우고 승인 체크 → "승인"이라고 답한다.
+   → AI가 승인된 범위만 구현 + 테스트 + `03_Result.md` 기록 후 commit까지 하고 멈춘다. Push/MR은 당신 지시로.
 
+각 단계를 손으로 직접 하고 싶으면 [따라하기 — 첫 이관 한 사이클](guides/walkthrough-first-cycle.md) 참조.
 Full 모드 절차는 `templates/migration-docs-light/README.md`의 승격 기준과 기존 6단계(scaffold → OpenSpec → migration docs → Agent instructions → Validator → Archive)를 따른다.
 
 ## Teammate Guides
