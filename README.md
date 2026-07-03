@@ -8,8 +8,9 @@
 
 ## 이 Kit이 제공하는 것
 
+- Light 모드 실전 이관 문서 templates (3-file, 기본)
 - OpenSpec change templates
-- Discover → Specify → Plan → Implement → Validate → Archive 문서 templates
+- Discover → Specify → Plan → Implement → Validate → Archive 문서 templates (Full 모드)
 - Codex/Claude prompt templates
 - `AGENTS.md`와 `CLAUDE.md` templates
 - Safety, context loading, no-guessing policies
@@ -37,14 +38,25 @@
 
 Validator CLI는 별도 repository의 private Git dependency로 사용하며 source를 이 Kit에 포함하지 않는다.
 
-## Quick Start
+## 두 가지 모드
 
-1. `templates/target-project/` scaffold를 target project에 적용한다.
-2. `templates/openspec-change/`로 OpenSpec change를 작성한다.
-3. `templates/migration-docs/`로 migration 문서를 작성한다.
-4. `prompts/`와 `agent/`의 승인된 Agent instructions를 사용한다.
-5. Validator CLI로 migration docs를 검사한다.
-6. 검증 결과와 남은 질문을 Archive 문서에 기록한다.
+| | Light 모드 (기본) | Full 모드 |
+|---|---|---|
+| 문서 | 3개 (`templates/migration-docs-light/`) | 8개 + OpenSpec (`templates/migration-docs/`) |
+| 대상 | 일반 기능의 실제 이관 | 결제·인증·PII·공유 코드·cutover 판단 |
+| 검증 | Spec 승인 체크 + 사람 리뷰 | Validator CLI + Human Gate Checklist |
+
+규칙은 두 모드 공통 3개: **레거시 read-only · 계약은 사람 승인 후 구현 · 격리 브랜치**.
+
+## Quick Start (Light 모드)
+
+1. 이관할 기능을 정하고 격리 브랜치를 만든다.
+2. `prompts/`의 discover prompt로 AI에게 레거시를 분석시킨다 → `01_Analysis.md`
+3. `02_Spec.md`에 이관 후 계약을 적고 **사람이 승인 체크**를 한다.
+4. 승인된 범위만 구현하고 테스트한다.
+5. `03_Result.md`에 한 것 / 못 한 것 / 롤백 방법을 기록한다.
+
+Full 모드 절차는 `templates/migration-docs-light/README.md`의 승격 기준과 기존 6단계(scaffold → OpenSpec → migration docs → Agent instructions → Validator → Archive)를 따른다.
 
 ## Teammate Guides
 
