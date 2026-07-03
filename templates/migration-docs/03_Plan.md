@@ -1,6 +1,8 @@
 # Plan
 
-Status: Draft
+## Status
+
+Status: Not Started
 Implementation: Not Started
 Automation: Not Started
 MCP/Plugin: Deferred
@@ -15,14 +17,20 @@ MCP/Plugin: Deferred
 |---|---|---|
 | REQ-001 | PLAN-001 | TEST-001 |
 
-## Implementation Steps
+## Implementation Plan
 
 1. <small authorized change>
 
-## Validation Strategy
+## Test Plan
 
 - <test or evidence>
 
+## Risks
+
+- <risk>
+
 ## Permission
 
-Implementation Permission: Not Allowed / Allowed / Needs Human Decision
+Implementation Permission: Not Granted
+
+Permission changes require a separate Human review gate before any code change.

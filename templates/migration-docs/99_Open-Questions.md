@@ -1,6 +1,8 @@
 # Open Questions
 
-Status: Open
+## Status
+
+Status: Not Started
 Implementation: Not Started
 Automation: Not Started
 MCP/Plugin: Deferred

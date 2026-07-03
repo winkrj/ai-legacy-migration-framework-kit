@@ -1,10 +1,17 @@
 # Archive
 
-Status: Draft
-Decision: Pending
+## Status
+
+Status: Not Started
 Implementation: Not Started
 Automation: Not Started
 MCP/Plugin: Deferred
+
+## Decision
+
+Decision: Deferred
+
+This is a synthetic example. No real archive decision is made; the case exists to show document structure only.
 
 ## Verified
 
@@ -12,12 +19,16 @@ MCP/Plugin: Deferred
 
 ## Not Verified
 
-- Runtime behavior and implementation
+- Runtime behavior and any code change
 
-## Open Questions Carried Forward
+## Archived Knowledge
 
-- OQ-EX-001
+- The empty-result policy (empty collection, no error) is recorded as an example of a documented compatibility expectation.
 
-## Archive Judgment
+## Carry-forward
 
-Not Ready
+- OQ-EX-001, Example Maintainer, before any future example expansion
+
+## Residual Risks
+
+- None beyond the synthetic scope; no real system is involved.

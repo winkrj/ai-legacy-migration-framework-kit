@@ -1,9 +1,16 @@
 # Migration Case Index
 
-Status: Draft
+## Status
+
+Status: Not Started
 Implementation: Not Started
 Automation: Not Started
 MCP/Plugin: Deferred
+
+## Scope
+
+- Included: `<public-safe included behavior>`
+- Excluded: `<out-of-scope behavior>`
 
 ## Case
 

@@ -1,5 +1,7 @@
 # Implement
 
+## Status
+
 Status: Not Started
 Implementation: Not Started
 Automation: Not Started
@@ -7,14 +9,18 @@ MCP/Plugin: Deferred
 
 ## Permission
 
-Implementation Permission: Not Allowed
+Implementation Permission: Not Granted
 
 ## Approved Tasks
 
 - None
 
-## Change Log
+## Implementation Notes
 
-| Task | Files | Result | Tests |
-|---|---|---|---|
-| Example only | None | Not Performed | Not Run |
+| Task | Result | Tests |
+|---|---|---|
+| Example only | Not Performed | Not Run |
+
+## Changed Files
+
+- None

@@ -1,10 +1,17 @@
 # Archive
 
-Status: Draft
-Decision: Pending
+## Status
+
+Status: Not Started
 Implementation: Not Started
 Automation: Not Started
 MCP/Plugin: Deferred
+
+## Decision
+
+Decision: Not Started
+
+Candidate judgments: PASS / Archive with Conditions / BLOCKED / FAILED
 
 ## Verified
 
@@ -14,14 +21,14 @@ MCP/Plugin: Deferred
 
 - <remaining verification>
 
-## Open Questions Carried Forward
+## Archived Knowledge
+
+- <reusable rule, verified evidence, or convention candidate>
+
+## Carry-forward
 
 - <OQ-ID, owner, required phase>
 
 ## Residual Risks
 
 - <risk>
-
-## Archive Judgment
-
-PASS / Archive with Conditions / BLOCKED / FAILED

@@ -1,6 +1,8 @@
 # Discover
 
-Status: Draft
+## Status
+
+Status: Not Started
 Implementation: Not Started
 Automation: Not Started
 MCP/Plugin: Deferred
@@ -15,11 +17,17 @@ MCP/Plugin: Deferred
 
 - <out-of-scope behavior>
 
-## Evidence
+## Sources
 
-| ID | Source Type | Sanitized Reference | Evidence Level | Finding |
-|---|---|---|---|---|
-| EV-001 | Code / Test / Document | `<reference>` | Confirmed / Observed / Inferred |  |
+| ID | Source Type | Sanitized Reference | Access |
+|---|---|---|---|
+| SRC-001 | Code / Test / Document | `<public-safe reference>` | Read-only |
+
+## Findings
+
+| ID | Source | Evidence Level | Finding |
+|---|---|---|---|
+| EV-001 | SRC-001 | Confirmed / Observed / Inferred | <observed behavior> |
 
 ## Legacy Flow
 

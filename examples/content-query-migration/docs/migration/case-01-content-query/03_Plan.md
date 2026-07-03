@@ -1,6 +1,8 @@
 # Plan
 
-Status: Draft
+## Status
+
+Status: Planning
 Implementation: Not Started
 Automation: Not Started
 MCP/Plugin: Deferred
@@ -15,14 +17,18 @@ MCP/Plugin: Deferred
 |---|---|---|
 | REQ-CQ-001 | PLAN-CQ-001 | TEST-CQ-001 |
 
-## Implementation Steps
+## Implementation Plan
 
-1. No implementation is approved for this synthetic skeleton.
+1. No code change is authorized for this synthetic skeleton.
 
-## Validation Strategy
+## Test Plan
 
 - Review document structure with the Validator CLI.
 
+## Risks
+
+- The synthetic pagination boundary (OQ-EX-001) is intentionally unresolved.
+
 ## Permission
 
-Implementation Permission: Not Allowed
+Implementation Permission: Not Granted
