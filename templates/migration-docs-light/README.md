@@ -18,7 +18,8 @@
 
 ## Full 모드로 올려야 할 때
 
-다음 중 하나라도 해당하면 `templates/migration-docs/` 8-file 세트를 사용한다:
+다음 중 하나라도 해당하면 `templates/migration-docs/` 8-file 세트를 사용한다
+(절차는 [Full 모드 상세 가이드](../../guides/walkthrough-full-mode.md) 참조):
 
 - 결제, 인증/인가, 개인정보 처리
 - 여러 feature가 공유하는 코드/쿼리 변경
