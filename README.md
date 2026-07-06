@@ -48,18 +48,53 @@ Validator CLI는 별도 repository의 private Git dependency로 사용하며 sou
 
 규칙은 두 모드 공통 3개: **레거시 read-only · 계약은 사람 승인 후 구현 · 격리 브랜치**.
 
-## Quick Start (Light 모드) — 프롬프트 하나로 시작
+## Quick Start
 
-Kit은 git clone 없이 **zip으로 받아도 된다** (Markdown 템플릿 모음이므로). 받은 kit commit hash만 케이스 문서에 기록한다.
+### Claude Code — 플러그인 설치 (권장)
 
-1. **받기**: Kit zip을 받고, 이관할 프로젝트를 AI(Claude Code / Codex)로 연다.
-2. **붙여넣기**: [`prompts/start-migration.md`](prompts/start-migration.md)의 프롬프트에 빈칸 2개(기능명, 레거시 경로)를 채워 붙여넣는다.
-   → AI가 브랜치 생성 → 레거시 분석(`01_Analysis.md`) → 스펙 초안(`02_Spec.md`)까지 만들고 **멈춘다.**
-3. **승인**: `02_Spec.md`의 결정 항목을 채우고 승인 체크 → "승인"이라고 답한다.
-   → AI가 승인된 범위만 구현 + 테스트 + `03_Result.md` 기록 후 commit까지 하고 멈춘다. Push/MR은 당신 지시로.
+이 repo는 Claude Code 플러그인이다. 설치는 1회, 이후 업데이트는 플러그인 매니저가 관리한다.
+
+```text
+/plugin marketplace add winkrj/ai-legacy-migration-framework-kit
+/plugin install legacy-migration@legacy-migration-kit
+```
+
+설치되는 것:
+
+| 구성요소 | 역할 |
+|---|---|
+| `/legacy-migration:conventions [참고경로]` | 컨벤션 등록 — 직접 입력 정규화, 또는 팀 가이드/참고 프로젝트에서 패턴+반례 추출 → `docs/conventions/` Draft 생성, 승인은 사람이 |
+| `/legacy-migration:start <기능명> <레거시경로>` | 브랜치 생성 → 레거시 분석(`01_Analysis.md`) → 스펙 초안(`02_Spec.md`). **구현 단계가 커맨드에 없어서 구조적으로 여기서 끝난다.** |
+| `/legacy-migration:implement <기능명>` | `02_Spec.md` 승인 체크박스 확인 후, 승인된 범위만 구현 + 테스트 + `03_Result.md` + commit |
+| `/legacy-migration:full` | 결제·인증·PII·공유 코드·cutover용 Full 모드 |
+| `/legacy-migration:validate <케이스명>` | Validator CLI 실행 (npx, 별도 설치 불필요) |
+| 스펙 승인 게이트 훅 | 이관 브랜치에서 승인 체크 전 production 파일 수정을 **차단** |
+| legacy-migration 스킬 | 커맨드 없이 "이 기능 이관해줘"라고 해도 워크플로우 자동 적용 |
+
+사용 흐름: `start` → AI가 스펙에서 멈춤 → 당신이 `02_Spec.md` 결정 항목 채우고 승인 체크 → `implement`. Push/MR은 당신 지시로만.
+
+### Codex — 프롬프트 팩 설치 (npx 한 줄)
+
+```bash
+npx --yes github:winkrj/ai-legacy-migration-framework-kit
+```
+
+`~/.codex/prompts/`에 커스텀 프롬프트 5종이 설치되고, 이후 `/migrate-conventions`, `/migrate-start`, `/migrate-implement`, `/migrate-validate`, `/migrate-full`로 사용한다. (Codex에는 플러그인 마켓 시스템이 없어 커스텀 프롬프트 + `AGENTS.md`가 플러그인 역할을 한다.) 상세는 [codex/INSTALL.md](codex/INSTALL.md).
+
+### 설치 없이 (zip / 프롬프트 복붙)
+
+Kit은 zip으로 받아 [`prompts/start-migration.md`](prompts/start-migration.md)를 복붙하는 방식도 지원한다. 받은 kit commit hash만 케이스 문서에 기록한다.
 
 각 단계를 손으로 직접 하고 싶으면 [따라하기 — 첫 이관 한 사이클](guides/walkthrough-first-cycle.md) 참조.
 결제·인증·PII·공유 코드·cutover 케이스는 [Full 모드 상세 가이드](guides/walkthrough-full-mode.md)를 따른다.
+
+### Validator CLI — 설치 대신 npx 실행
+
+```bash
+npx --yes github:winkrj/legacy-migration-validator-cli --root ./docs/migration/<case> --report ./reports/<case>-validation-report.md
+```
+
+repo 접근 권한만 있으면 별도 설치가 필요 없다. 고정 버전이 필요하면 target 프로젝트 devDependency로 commit hash pinning한다.
 
 ## Teammate Guides
 
@@ -97,10 +132,9 @@ Validate 문서는 다음 mode 중 실제 수행 방식만 기록한다.
 - 회사·내부 정보, credential과 실제 운영 식별자를 포함하지 않는다.
 - Production readiness를 주장하지 않는다.
 - Auto-fix와 source mutation을 수행하지 않는다.
-- Executable hooks를 포함하지 않는다.
-- MCP/Plugin은 Deferred다.
+- 훅은 read-only 게이트(승인 전 수정 차단)만 포함하며, 코드를 수정하는 훅은 포함하지 않는다.
+- MCP는 Deferred다.
 - CI는 Deferred다.
-- Claude hooks는 placeholder 문서만 제공한다.
 
 ## 현재 제한
 
