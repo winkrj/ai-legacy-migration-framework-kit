@@ -1,8 +1,8 @@
 {
   "name": "ai-legacy-migration-framework-kit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "AI Legacy Migration Framework Kit — Claude Code plugin + Codex prompt pack. npx로 실행하면 Codex 커스텀 프롬프트를 설치한다.",
+  "description": "AI Legacy Migration Framework Kit — Claude Code와 Codex 플러그인 및 팀 marketplace.",
   "type": "module",
   "bin": {
     "legacy-kit-codex-install": "./scripts/install-codex.mjs"

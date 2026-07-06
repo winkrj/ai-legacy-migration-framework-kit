@@ -73,13 +73,22 @@ Validator CLI는 별도 repository의 private Git dependency로 사용하며 sou
 
 사용 흐름: `start` → AI가 스펙에서 멈춤 → 당신이 `02_Spec.md` 결정 항목 채우고 승인 체크 → `implement`. Push/MR은 당신 지시로만.
 
-### Codex — 프롬프트 팩 설치 (npx 한 줄)
+### Codex — 플러그인 설치 (npx 한 줄)
 
 ```bash
 npx --yes github:winkrj/ai-legacy-migration-framework-kit
 ```
 
-`~/.codex/prompts/`에 커스텀 프롬프트 5종이 설치되고, 이후 `/migrate-conventions`, `/migrate-start`, `/migrate-implement`, `/migrate-validate`, `/migrate-full`로 사용한다. (Codex에는 플러그인 마켓 시스템이 없어 커스텀 프롬프트 + `AGENTS.md`가 플러그인 역할을 한다.) 상세는 [codex/INSTALL.md](codex/INSTALL.md).
+설치기가 팀 marketplace를 등록하고 `legacy-migration` Codex 플러그인을 설치한다. 플러그인에는 skill, 5개 워크플로 reference, 문서 템플릿, 스펙 승인 게이트 훅이 포함된다. 새 Codex thread에서 자연어로 요청하거나 `legacy-migration` 스킬을 명시해 사용한다. 상세는 [codex/INSTALL.md](codex/INSTALL.md).
+
+CLI로 직접 설치하려면:
+
+```bash
+codex plugin marketplace add winkrj/ai-legacy-migration-framework-kit
+codex plugin add legacy-migration@legacy-migration-kit
+```
+
+설치 후 플러그인 훅은 내용을 검토하고 신뢰해야 활성화된다.
 
 ### 설치 없이 (zip / 프롬프트 복붙)
 

@@ -1,33 +1,30 @@
 #!/usr/bin/env node
-// Codex 커스텀 프롬프트 설치기.
-// codex/prompts/*.md를 ~/.codex/prompts/로 복사한다. 그 외에는 아무것도 건드리지 않는다.
-import { copyFileSync, mkdirSync, readdirSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { homedir } from "node:os";
+// Codex marketplace와 legacy-migration 플러그인을 한 번에 설치한다.
+import { spawnSync } from "node:child_process";
 
-const src = join(dirname(fileURLToPath(import.meta.url)), "..", "codex", "prompts");
-const dest = join(homedir(), ".codex", "prompts");
+const MARKETPLACE_SOURCE = "winkrj/ai-legacy-migration-framework-kit";
+const MARKETPLACE_NAME = "legacy-migration-kit";
+const PLUGIN = `legacy-migration@${MARKETPLACE_NAME}`;
+const dryRun = process.argv.includes("--dry-run");
 
-if (!existsSync(src)) {
-  console.error(`prompts 폴더를 찾을 수 없습니다: ${src}`);
-  process.exit(1);
+function run(args, { allowFailure = false } = {}) {
+  console.log(`codex ${args.join(" ")}`);
+  if (dryRun) return;
+
+  const result = spawnSync("codex", args, { stdio: "inherit" });
+  if (result.error?.code === "ENOENT") {
+    console.error("Codex CLI를 찾을 수 없습니다. Codex CLI를 설치한 뒤 다시 실행하세요.");
+    process.exit(1);
+  }
+  if (result.status !== 0 && !allowFailure) process.exit(result.status ?? 1);
 }
 
-mkdirSync(dest, { recursive: true });
-
-const files = readdirSync(src).filter((f) => f.endsWith(".md"));
-for (const f of files) {
-  copyFileSync(join(src, f), join(dest, f));
-  console.log(`installed  /${f.replace(/\.md$/, "")}  →  ${join(dest, f)}`);
-}
+// 기존 marketplace 등록은 실패할 수 있으므로 add 후 upgrade로 수렴시킨다.
+run(["plugin", "marketplace", "add", MARKETPLACE_SOURCE], { allowFailure: true });
+run(["plugin", "marketplace", "upgrade", MARKETPLACE_NAME], { allowFailure: true });
+run(["plugin", "add", PLUGIN]);
 
 console.log(`
-완료. Codex 세션에서 사용:
-  /migrate-conventions [참고-프로젝트-경로]   컨벤션 등록
-  /migrate-start <기능명> <레거시경로>        분석 + 스펙 초안 (여기서 멈춤)
-  /migrate-implement <기능명>                 스펙 승인 후 구현
-  /migrate-validate <케이스명>                이관 문서 검사
-  /migrate-full <기능명> <레거시경로>         결제·인증·PII·공유 코드용 Full 모드
-
-권장: 타겟 프로젝트 루트에 kit의 agent/codex/AGENTS.md를 복사(또는 병합)하세요.`);
+설치 완료: ${PLUGIN}
+새 Codex thread를 열고 "legacy-migration 플러그인으로 이 기능 이관을 시작해줘"라고 요청하세요.
+플러그인 훅은 최초 사용 시 내용을 검토하고 신뢰해야 활성화됩니다.`);

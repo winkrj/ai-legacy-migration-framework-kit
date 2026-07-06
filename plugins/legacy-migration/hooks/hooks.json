@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/hooks/spec-gate.sh\"",
+            "statusMessage": "Checking migration specification approval"
+          }
+        ]
+      }
+    ]
+  }
+}
