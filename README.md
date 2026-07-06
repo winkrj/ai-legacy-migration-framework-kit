@@ -37,13 +37,22 @@ AI에게 그냥 "이 기능 옮겨줘"라고 하면 생기는 일 → 이 kit의
 ### Codex
 
 ```
+npx --yes github:winkrj/ai-legacy-migration-framework-kit
+```
+
+마켓플레이스 등록 + 플러그인 설치를 한 번에 실행합니다. 수동으로 하려면:
+
+```
 codex plugin marketplace add winkrj/ai-legacy-migration-framework-kit
 ```
 
 → Plugins 화면(`/plugins`)에서 **Legacy Migration Kit** 설치.
 
 > ⚠️ Codex 플러그인은 슬래시 커맨드가 아니라 **자연어**로 씁니다.
-> `/migrate-*` 커맨드를 원하면 추가로: `npx --yes github:winkrj/ai-legacy-migration-framework-kit`
+> `/migrate-*` 커맨드를 원하면 [codex/prompts/](codex/prompts/)를 `~/.codex/prompts/`에 복사하세요.
+
+**업데이트**: kit이 갱신되면 `codex plugin marketplace upgrade legacy-migration-kit` /
+Claude Code는 `/plugin marketplace update legacy-migration-kit`
 
 ---
 

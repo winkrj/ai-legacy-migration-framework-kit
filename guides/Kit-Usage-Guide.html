@@ -162,7 +162,7 @@
 </table>
 
 <div class="note">Codex 플러그인 열에 슬래시 커맨드가 없는 이유: Codex 플러그인은 커맨드가 아니라 <b>스킬</b>로 동작하기 때문입니다.
-  자연어로 요청하면 같은 절차가 적용됩니다. <code>/migrate-*</code> 커맨드는 방법 B(npx)를 설치했을 때만 생깁니다.</div>
+  자연어로 요청하면 같은 절차가 적용됩니다. <code>/migrate-*</code> 커맨드는 방법 B(프롬프트 파일 복사)를 설치했을 때만 생깁니다.</div>
 
 <!-- ============================================================ -->
 <h2 id="prep">1. 준비물 확인</h2>
@@ -228,6 +228,9 @@
   <b>방법 B (커스텀 프롬프트)</b>를 설치해야 <code>/migrate-start</code> 같은 커맨드가 생깁니다. 둘을 같이 설치해도 됩니다.</div>
 
 <h3>방법 A. 플러그인 (권장)</h3>
+<p>가장 빠른 방법 — 아래 한 줄이 마켓플레이스 등록과 플러그인 설치를 한 번에 실행합니다 (Node 18+):</p>
+<pre><code><span class="c">npx --yes github:winkrj/ai-legacy-migration-framework-kit</span></code></pre>
+<p>수동으로 하려면:</p>
 <ol class="steps">
   <li>
     <h3>터미널에서 마켓플레이스 등록</h3>
@@ -250,15 +253,11 @@
 <h3>방법 B. 커스텀 프롬프트</h3>
 <ol class="steps">
   <li>
-    <h3>터미널에서 한 줄 실행</h3>
-    <pre><code><span class="c">npx --yes github:winkrj/ai-legacy-migration-framework-kit</span></code></pre>
-    <p>실행하면 아래처럼 출력됩니다:</p>
-    <pre><code><span class="dim">installed  /migrate-conventions  →  ~/.codex/prompts/migrate-conventions.md
-installed  /migrate-full         →  ~/.codex/prompts/migrate-full.md
-installed  /migrate-implement    →  ~/.codex/prompts/migrate-implement.md
-installed  /migrate-start        →  ~/.codex/prompts/migrate-start.md
-installed  /migrate-validate     →  ~/.codex/prompts/migrate-validate.md
-완료. Codex 세션에서 사용: ...</span></code></pre>
+    <h3>프롬프트 파일 복사</h3>
+    <pre><code><span class="c">git clone --depth 1 https://github.com/winkrj/ai-legacy-migration-framework-kit /tmp/legacy-kit
+mkdir -p ~/.codex/prompts
+cp /tmp/legacy-kit/codex/prompts/*.md ~/.codex/prompts/</span></code></pre>
+    <p><code>/migrate-start</code>, <code>/migrate-conventions</code> 등 커맨드 5종이 생깁니다.</p>
   </li>
   <li>
     <h3>AGENTS.md 배치 (신규 프로젝트당 1회)</h3>
@@ -430,8 +429,7 @@ installed  /migrate-validate     →  ~/.codex/prompts/migrate-validate.md
   <summary>플러그인을 설치했는데 /migrate-conventions 커맨드가 없다고 나와요</summary>
   <p>정상입니다 — <b>Codex 플러그인은 슬래시 커맨드를 만들지 않습니다.</b> 플러그인은 스킬로 동작하므로
      자연어로 요청하세요: "컨벤션을 등록해줘. 참고 프로젝트는 ~/work/team-guide-project".
-     <code>/migrate-*</code> 커맨드를 쓰고 싶으면 방법 B를 추가로 설치하세요:
-     <code>npx --yes github:winkrj/ai-legacy-migration-framework-kit</code></p>
+     <code>/migrate-*</code> 커맨드를 쓰고 싶으면 방법 B(프롬프트 파일 복사)를 추가로 설치하세요.</p>
 </details>
 <details>
   <summary>Codex Plugins 화면에 Legacy Migration Kit이 안 보여요</summary>
@@ -441,9 +439,20 @@ installed  /migrate-validate     →  ~/.codex/prompts/migrate-validate.md
 </details>
 <details>
   <summary>npx 실행이 실패해요</summary>
-  <p>① <code>node --version</code>이 18 이상인지 확인. ② 네트워크에서 github.com 접근이 가능한지 확인.
-     ③ 회사 프록시 환경이면 zip으로 받아 수동 복사하세요:
-     repo에서 Code → Download ZIP → 압축 해제 후 <code>cp codex/prompts/*.md ~/.codex/prompts/</code></p>
+  <p>npx 한 줄 설치는 내부적으로 <code>codex plugin marketplace add</code>와 <code>codex plugin add</code>를 실행합니다.
+     ① <code>node --version</code>이 18 이상인지, <code>codex --version</code>이 되는지 확인.
+     ② 네트워크에서 github.com 접근이 가능한지 확인.
+     ③ 그래도 안 되면 방법 A의 수동 단계(<code>codex plugin marketplace add ...</code>)를 직접 실행하세요.</p>
+</details>
+<details>
+  <summary>플러그인을 업데이트했는데 반영이 안 돼요</summary>
+  <p>설치된 플러그인은 설치 시점의 복사본입니다. kit이 갱신되면 마켓플레이스를 새로고침해야 합니다:</p>
+  <pre><code><span class="dim"># Codex</span>
+<span class="c">codex plugin marketplace upgrade legacy-migration-kit</span>
+
+<span class="dim"># Claude Code (대화 입력창에서)</span>
+<span class="c">/plugin marketplace update legacy-migration-kit</span></code></pre>
+  <p>그 후에도 이전 동작이면 플러그인을 제거 후 재설치하고, 새 스레드에서 테스트하세요 (진행 중이던 스레드는 이전 스킬 내용을 기억하고 있을 수 있습니다).</p>
 </details>
 <details>
   <summary>"BLOCKED by legacy-migration spec gate" 메시지가 떴어요</summary>

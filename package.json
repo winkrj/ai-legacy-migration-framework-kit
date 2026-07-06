@@ -1,6 +1,6 @@
 {
   "name": "ai-legacy-migration-framework-kit",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "AI Legacy Migration Framework Kit — Claude Code와 Codex 플러그인 및 팀 marketplace.",
   "type": "module",
