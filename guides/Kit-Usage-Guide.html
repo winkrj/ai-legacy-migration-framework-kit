@@ -160,6 +160,10 @@
 <h2 id="install-codex">3. 설치 — Codex</h2>
 <p class="lead">플러그인 방식(권장)과 커스텀 프롬프트 방식 중 하나를 고르세요. 둘 다 설치해도 됩니다.</p>
 
+<div class="note"><b>먼저 알아두세요 — 두 방법은 사용 방식이 다릅니다.</b><br>
+  <b>방법 A (플러그인)</b>는 슬래시 커맨드를 만들지 <u>않습니다</u>. 설치 후 <b>자연어로 요청</b>하면 스킬이 워크플로우를 적용합니다.<br>
+  <b>방법 B (커스텀 프롬프트)</b>를 설치해야 <code>/migrate-start</code> 같은 커맨드가 생깁니다. 둘을 같이 설치해도 됩니다.</div>
+
 <h3>방법 A. 플러그인 (권장)</h3>
 <ol class="steps">
   <li>
@@ -219,7 +223,10 @@ installed  /migrate-validate     →  ~/.codex/prompts/migrate-validate.md
     <pre><code><span class="dim"># Claude Code (~/work/new-admin-api에서 claude 실행 중)</span>
 <span class="c">/legacy-migration:conventions ~/work/team-guide-project</span>
 
-<span class="dim"># Codex</span>
+<span class="dim"># Codex — 플러그인 설치했다면 (자연어)</span>
+<span class="c">컨벤션을 등록해줘. 참고 프로젝트는 ~/work/team-guide-project</span>
+
+<span class="dim"># Codex — 커스텀 프롬프트(방법 B) 설치했다면</span>
 <span class="c">/migrate-conventions ~/work/team-guide-project</span></code></pre>
     <p>참고 프로젝트가 없다면 인자 없이 실행하세요 — AI가 "직접 입력 / 현재 프로젝트에서 추출" 중 무엇으로 할지 물어봅니다.
        규칙을 직접 알려주고 싶으면 실행 후 대화로 제시하면 됩니다 (예: "응답은 모두 ApiResponse&lt;T&gt;로 감싸고, 날짜는 ISO-8601 문자열로 반환해").</p>
@@ -255,8 +262,10 @@ installed  /migrate-validate     →  ~/.codex/prompts/migrate-validate.md
     <pre><code><span class="dim"># Claude Code</span>
 <span class="c">/legacy-migration:start notice-list ~/work/legacy-admin</span>
 
-<span class="dim"># Codex (플러그인: 자연어로 / 프롬프트: 커맨드로)</span>
+<span class="dim"># Codex — 플러그인 설치했다면 (자연어)</span>
 <span class="c">레거시 기능 이관을 분석 단계부터 시작해줘. 기능명 notice-list, 레거시 경로 ~/work/legacy-admin</span>
+
+<span class="dim"># Codex — 커스텀 프롬프트(방법 B) 설치했다면</span>
 <span class="c">/migrate-start notice-list ~/work/legacy-admin</span></code></pre>
   </li>
   <li>
@@ -289,7 +298,10 @@ installed  /migrate-validate     →  ~/.codex/prompts/migrate-validate.md
     <pre><code><span class="dim"># Claude Code</span>
 <span class="c">/legacy-migration:implement notice-list</span>
 
-<span class="dim"># Codex (구현은 새 세션에서 여는 것을 권장)</span>
+<span class="dim"># Codex — 플러그인 (자연어, 새 세션에서 여는 것을 권장)</span>
+<span class="c">notice-list 스펙 승인했어. 승인된 범위만 구현 진행해줘</span>
+
+<span class="dim"># Codex — 커스텀 프롬프트(방법 B)</span>
 <span class="c">/migrate-implement notice-list</span></code></pre>
   </li>
   <li>
@@ -328,8 +340,11 @@ installed  /migrate-validate     →  ~/.codex/prompts/migrate-validate.md
 <!-- ============================================================ -->
 <h2 id="validate">7. 문서 검사 (Validator)</h2>
 <p class="lead">이관 문서가 형식을 갖췄는지(필수 섹션/필드, 상태 어휘, 민감정보, 구현 경계) 기계적으로 검사합니다. Full 모드에서는 필수, Light 모드에서는 선택.</p>
-<pre><code><span class="dim"># AI에게 시키기 (Claude Code / Codex)</span>
+<pre><code><span class="dim"># Claude Code</span>
 <span class="c">/legacy-migration:validate notice-list</span>
+
+<span class="dim"># Codex — 플러그인 (자연어) / 커스텀 프롬프트(방법 B)</span>
+<span class="c">notice-list 이관 문서를 validator로 검사해줘</span>
 <span class="c">/migrate-validate notice-list</span>
 
 <span class="dim"># 직접 터미널에서 돌리기 (설치 불필요, Node 18+)</span>
@@ -347,6 +362,13 @@ installed  /migrate-validate     →  ~/.codex/prompts/migrate-validate.md
   <p>① <code>/plugin</code>으로 legacy-migration이 설치·활성화(enabled) 상태인지 확인하세요.
      ② 마켓플레이스 추가를 건너뛰었다면 <code>/plugin marketplace add winkrj/ai-legacy-migration-framework-kit</code>부터 다시.
      ③ Claude Code를 재시작(<span class="kbd">Ctrl+C</span> 후 <code>claude</code>)해보세요.</p>
+</details>
+<details>
+  <summary>플러그인을 설치했는데 /migrate-conventions 커맨드가 없다고 나와요</summary>
+  <p>정상입니다 — <b>Codex 플러그인은 슬래시 커맨드를 만들지 않습니다.</b> 플러그인은 스킬로 동작하므로
+     자연어로 요청하세요: "컨벤션을 등록해줘. 참고 프로젝트는 ~/work/team-guide-project".
+     <code>/migrate-*</code> 커맨드를 쓰고 싶으면 방법 B를 추가로 설치하세요:
+     <code>npx --yes github:winkrj/ai-legacy-migration-framework-kit</code></p>
 </details>
 <details>
   <summary>Codex Plugins 화면에 Legacy Migration Kit이 안 보여요</summary>
