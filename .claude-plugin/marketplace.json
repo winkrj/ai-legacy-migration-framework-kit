@@ -1,0 +1,13 @@
+{
+  "name": "legacy-migration-kit",
+  "owner": {
+    "name": "winkrj"
+  },
+  "plugins": [
+    {
+      "name": "legacy-migration",
+      "source": "./",
+      "description": "레거시 이관 워크플로우: 분석 → 스펙(사람 승인) → 구현 → 검증. 승인 전 구현을 훅으로 차단한다."
+    }
+  ]
+}
