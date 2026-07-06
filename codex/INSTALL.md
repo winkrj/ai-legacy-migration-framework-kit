@@ -1,40 +1,53 @@
-# Codex 설치 가이드
+# Codex 플러그인 설치 가이드
 
-Codex CLI에서 이 Kit을 슬래시 커맨드처럼 쓰는 방법. 설치는 복사 한 번이다.
+이 저장소는 Codex 팀 marketplace와 `legacy-migration` 플러그인을 함께 제공한다.
 
-## 1. 커스텀 프롬프트 설치 (1회)
+## 1. 한 줄 설치
 
 ```bash
 npx --yes github:winkrj/ai-legacy-migration-framework-kit
 ```
 
-repo를 이미 clone했다면 `node scripts/install-codex.mjs` 또는 수동 복사도 된다:
+설치기는 다음 명령을 수행한다.
 
 ```bash
-mkdir -p ~/.codex/prompts
-cp codex/prompts/*.md ~/.codex/prompts/
+codex plugin marketplace add winkrj/ai-legacy-migration-framework-kit
+codex plugin marketplace upgrade legacy-migration-kit
+codex plugin add legacy-migration@legacy-migration-kit
 ```
 
-이후 Codex 세션에서 `/migrate-conventions`, `/migrate-start`, `/migrate-implement`, `/migrate-validate`, `/migrate-full`로 호출한다.
+설치 후에는 새 Codex thread를 연다. 플러그인 훅은 최초 사용 시 정의를 검토하고 신뢰해야 실행된다.
 
-## 2. AGENTS.md 배치 (타겟 프로젝트당 1회)
+## 2. 사용
 
-타겟 프로젝트 루트에 `agent/codex/AGENTS.md`를 복사(또는 기존 AGENTS.md에 병합)한다.
-이 파일이 evidence 규칙, Implementation Permission, 컨벤션 규칙을 상시 적용한다.
+자연어로 요청하면 플러그인의 `legacy-migration` 스킬이 필요한 워크플로를 선택한다.
+
+- `참고 프로젝트에서 컨벤션 초안을 추출해줘`
+- `공지사항 목록 기능 이관을 분석 단계부터 시작해줘. 레거시는 ~/work/legacy-admin이야`
+- `승인된 공지사항 목록 스펙을 구현해줘`
+- `이 이관 문서를 검증해줘`
+- `인증 기능이므로 Full 모드로 이관을 시작해줘`
+
+분석 단계는 `01_Analysis.md`와 `02_Spec.md`를 작성하고 멈춘다. 사람이 결정 항목을 채우고 구현 승인 체크박스를 체크한 뒤 별도 요청으로 구현한다.
+
+## 3. 플러그인 구성
+
+- manifest: `plugins/legacy-migration/.codex-plugin/plugin.json`
+- skill: `plugins/legacy-migration/skills/legacy-migration/SKILL.md`
+- 워크플로 reference: `plugins/legacy-migration/skills/legacy-migration/references/`
+- 템플릿: `plugins/legacy-migration/templates/`
+- 승인 게이트 훅: `plugins/legacy-migration/hooks/`
+- 팀 marketplace: `.agents/plugins/marketplace.json`
+
+## 4. 업데이트
 
 ```bash
-cp agent/codex/AGENTS.md <target-project>/AGENTS.md
+codex plugin marketplace upgrade legacy-migration-kit
+codex plugin add legacy-migration@legacy-migration-kit
 ```
 
-## 3. 템플릿 배치 (타겟 프로젝트당 1회, 선택)
+업데이트 후 새 thread를 열어야 변경된 skill과 훅이 확실하게 적용된다.
 
-```bash
-mkdir -p <target-project>/docs/migration
-cp -R templates/migration-docs-light <target-project>/docs/migration/_templates-light
-```
+## 기존 프롬프트 팩
 
-템플릿이 프로젝트에 없으면 프롬프트가 같은 구조의 파일을 직접 생성하므로 생략해도 된다.
-
-## Claude Code와의 차이
-
-Codex에는 스펙 승인 게이트 훅이 없다. 승인 전 구현 차단은 프롬프트 분리(analyze/implement가 별도 커맨드)와 AGENTS.md 규칙에 의존하므로, **분석 세션과 구현 세션을 분리**해서 쓰는 것을 권장한다.
+`codex/prompts/`는 이전 설치 방식과의 호환을 위해 남겨두지만 신규 설치에는 사용하지 않는다. 신규 사용자는 플러그인 방식을 사용한다.

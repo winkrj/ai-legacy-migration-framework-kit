@@ -1,0 +1,20 @@
+{
+  "name": "legacy-migration-kit",
+  "interface": {
+    "displayName": "AI Legacy Migration Kit"
+  },
+  "plugins": [
+    {
+      "name": "legacy-migration",
+      "source": {
+        "source": "local",
+        "path": "./plugins/legacy-migration"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
