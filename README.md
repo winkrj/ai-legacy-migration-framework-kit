@@ -182,6 +182,18 @@ prompts/                  복붙용 시작 프롬프트
 
 ---
 
+## 변경 이력
+
+### 0.4.0
+- Full 모드 문서를 **한글 기본**으로 재작성 (Status 값·Given/When/Then 등 고정 토큰만 영어 유지)
+- `02_Specify.md`에 **API 단위 상세 스펙 표** 필수화 — API ID / 레거시 근거 / 요청·응답 / DB R·W / 외부연동 / business rule / empty·error / 미결(OQ) / 연결 Task
+- `tasks.md`를 **API ID 기준 `PLAN`/`IMPL`/`VAL` triad**로, `03_Plan`에 API↔requirement↔task 추적표 추가
+- 구현 규칙 강화: task ID 없는 구현 금지, 예상 밖 API·파일 발견 시 중단
+- `npm run sync-codex`로 루트→Codex 사본 동기화(prompts 누락 해소)
+- 문서 구조 검사는 [Validator CLI](https://github.com/winkrj/legacy-migration-validator-cli) 0.2.0(API 표/task ID/승인 게이트 룰)과 함께 동작
+
+---
+
 ## License
 
 MIT — [LICENSE](LICENSE)
