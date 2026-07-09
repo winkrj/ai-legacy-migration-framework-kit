@@ -50,18 +50,21 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 
 ### 3-2. Specify — 사실과 결정을 분리
 
-- **산출물**: `02_Specify.md` (Status / Domain Rules / API Map / DB Map / Open Questions)
+- **산출물**: `02_Specify.md` (상태 / 도메인 규칙 / **API 상세 스펙** / 데이터 매핑 / 미결 질문)
 - **AI 프롬프트**: `prompts/codex/03_spec-generate.md`
-- **핵심 작업**: Discover 결과를 rule 단위로 분해하고 각 rule에 표시:
+- **문서 단위**: 큰 단위는 **메뉴/feature**, 상세 계약 단위는 **API**, 구현/검증 단위는 **task ID**.
+- **API 상세 스펙 표 필수**: 각 API를 한 행으로 적고, 행마다 최소 — API ID / Method·Path / 기능명 / 레거시 근거(JSP·config·controller·service·mapper·query) / 요청 파라미터·body / 응답 field / DB read·write / 외부 연동 / business rule / empty·error 정책 / 미결(OQ) / **연결 Task ID**. 표가 없거나 행에 API ID·Task ID가 없으면 Validator가 error(`API_SPEC_TABLE`/`API_TASK_LINK`)를 낸다.
+- **핵심 작업**: Discover 결과를 rule/API 단위로 분해하고 각 항목에 표시:
   - **Evidence Status**: Legacy Confirmed / Target Confirmed / Inferred / Policy Difference ...
   - **Implementation Permission**: 기본 **Not Granted** — 사람이 명시해야만 바뀐다
 - **차이를 만나면 3분류**: ① Policy Difference (사람이 정할 것) ② Intentional Improvement (개선 후보, 승인 필요) ③ Runtime Verification 필요 (실행해봐야 아는 것)
-- **통과 조건**: 모든 차이가 분류됐고, 사람이 결정할 항목이 질문 형태로 정리됨.
+- **통과 조건**: 모든 API가 표에 행으로 있고 각 행에 연결 Task ID가 있으며, 모든 차이가 분류됐고, 사람이 결정할 항목이 질문 형태로 정리됨.
 
 ### 3-3. OpenSpec — 계약 승인 (첫 번째 큰 gate)
 
 - **산출물**: `changes/<change-name>/` 아래 `proposal.md` + `tasks.md` + `specs/<capability>/spec.md`
 - **AI 프롬프트**: `prompts/codex/04_openspec-generate.md`
+- **tasks.md는 API ID 기준**: `02_Specify.md`의 각 API ID마다 `PLAN-API-NNN`(계획·권한) / `IMPL-API-NNN`(구현) / `VAL-API-NNN`(검증) 세 task를 만든다. NNN은 API ID와 같은 번호로 맞추고, 각 task는 어떤 requirement/API spec에 연결되는지 적는다. 세 종류가 다 없으면 Validator가 error(`TASK_ID_TRIAD`)를 낸다.
 - **작성 요령**: Requirement + Given/When/Then Scenario. **미해결 결정은 requirement로 위장하지 말고** `[DECISION PENDING]`으로 표시하거나 Open Question으로 뺀다. Non-goals(안 하는 것)를 명시한다.
 - **통과 조건**: 사람이 결정 항목을 모두 결정하고 proposal을 승인. 이때 `[DECISION PENDING]` → 결정 반영, runtime 확인 필요한 것만 `[RUNTIME VERIFICATION PENDING]`으로 남김.
 
@@ -73,8 +76,13 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 
 ### 3-5. Implement — 권한 있는 것만
 
-- **산출물**: 코드 + `04_Implement.md` (Status / Implementation Notes / Changed Files)
-- **핵심 규칙**: Permission 있는 항목만, 작은 단위로(1~5파일), 예상 밖 파일을 건드려야 하면 **멈추고 질문**. 테스트 실패를 숨기거나 assertion을 약화하지 않는다.
+- **산출물**: 코드 + `04_Implement.md` (상태 / 구현 메모 / 변경 파일)
+- **핵심 규칙**:
+  - **Implementation Permission이 Granted된 `IMPL-API-NNN` task만** 구현한다. **task ID 없는 구현은 금지**한다.
+  - 작은 단위로(1~5파일). 예상 밖 API·파일·외부 연동을 건드려야 하면 **멈추고 질문**한다.
+  - 구현 후 해당 task와 validation evidence(연결 `VAL-API-NNN`)를 갱신한다.
+  - 권한이 없는데 IMPL task를 완료(`- [x]`)로 표시하거나, 미해결 Open Question이 있는데 권한을 Granted로 바꾸면 Validator가 error(`PERMISSION_COMPLETION`/`PERMISSION_OPEN_QUESTION`)를 낸다.
+  - 테스트 실패를 숨기거나 assertion을 약화하지 않는다.
 
 ### 3-6. Validate — 한 검증과 안 한 검증을 구분
 
@@ -117,7 +125,10 @@ legacy-validator validate \
 실제 케이스에서 걸렸던 것들이다. 이것만 지키면 첫 실행에 exit 0이 나온다:
 
 1. **파일 8개 이름을 바꾸지 마라** — `00_Index.md` ~ `99_Open-Questions.md` 이름 그대로. 하위 폴더 깊이는 자유.
-2. **템플릿의 섹션 헤딩을 지우지 마라** — 예: `02_Specify.md`의 `## API Map`, `## DB Map`은 비어 있어도 헤딩은 있어야 한다.
+2. **템플릿의 섹션 헤딩을 지우지 마라** — 헤딩은 한글/영어 alias를 함께 허용한다. 예: `02_Specify.md`의 `## API 상세 스펙`(= `API Map`/`API Spec`), `## 데이터 매핑`(= `DB Map`)은 비어 있어도 헤딩은 있어야 한다.
+2-1. **`02_Specify.md`에는 API 상세 스펙 표가 필수** — `API ID` 열과 `연결 Task` 열이 있어야 하고, 각 행에 `API-NNN`과 `PLAN/IMPL/VAL-API-NNN`이 있어야 한다.
+2-2. **`tasks.md`는 API ID 기준 triad** — 각 API 번호마다 `PLAN`/`IMPL`/`VAL` 세 task가 다 있어야 한다.
+2-3. **권한 게이트** — 권한을 Granted 안 한 채 IMPL task를 `- [x]`로 표시하거나, `Open`인 Open Question이 남았는데 권한을 Granted로 바꾸면 error다.
 3. **상태 값은 정해진 어휘만** — `Status:` `Decision:` `Implementation:` 등의 줄에는 다음 값만 허용:
    `Not Started / Planning / Preparation / In Progress / Ready for Review / Ready for Archive / Approved / Rejected / Archive with Conditions / Archived / Deferred / Accepted / Not Granted / Completed`
    ❌ 자주 틀리는 값: `Draft`, `Open`, `Pending`, `Done`, `WIP`

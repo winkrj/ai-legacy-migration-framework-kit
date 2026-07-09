@@ -1,6 +1,6 @@
-# Implement
+# 구현 (Implement)
 
-## Status
+## 상태
 
 Status: Not Started
 Implementation: Not Started
@@ -11,20 +11,22 @@ MCP/Plugin: Deferred
 
 Implementation Permission: Not Granted
 
-## Approved Tasks
+## 승인된 Task
 
-- <task ID and requirement>
+- <IMPL-API-NNN 및 연결 requirement — Implementation Permission이 Granted된 것만>
 
-## Implementation Notes
+## 구현 메모
 
-| Task | Result | Tests |
+> Task ID 없는 구현은 금지한다. 승인된 IMPL task만, 작은 단위로 구현한다.
+
+| Task | 결과 | 테스트 |
 |---|---|---|
-|  | Not Performed | Not Run |
+| IMPL-API-001 | Not Performed | Not Run |
 
-## Changed Files
+## 변경 파일
 
 - None
 
-## Deviations
+## 이탈 사항
 
-- <none or human approval required>
+- <없음 또는 Human 승인 필요 — 예상 밖 API/파일/외부 연동을 발견하면 멈추고 질문한다>

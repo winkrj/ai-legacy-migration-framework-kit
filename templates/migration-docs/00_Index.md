@@ -1,24 +1,24 @@
-# Migration Case Index
+# 이관 케이스 인덱스 (Index)
 
-## Status
+## 상태
 
 Status: Not Started
 Implementation: Not Started
 Automation: Not Started
 MCP/Plugin: Deferred
 
-## Scope
+## 범위
 
-- Included: `<public-safe included behavior>`
-- Excluded: `<out-of-scope behavior>`
+- 포함: `<공개 가능한 포함 동작>`
+- 제외: `<범위 밖 동작>`
 
-## Case
+## 케이스
 
-- Name: `<public-safe-case-name>`
+- 이름: `<공개 가능한 케이스명>`
 - OpenSpec Change: `<change-path>`
-- Owner: `<role>`
+- Owner: `<역할>`
 
-## Documents
+## 문서
 
 - `01_Discover.md`
 - `02_Specify.md`
@@ -28,6 +28,6 @@ MCP/Plugin: Deferred
 - `06_Archive.md`
 - `99_Open-Questions.md`
 
-## Current Gate
+## 현재 게이트
 
-<Current workflow gate and permission>
+<현재 workflow 게이트와 권한>

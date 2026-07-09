@@ -1,0 +1,11 @@
+{
+  "name": "target-migration-project-example",
+  "private": true,
+  "scripts": {
+    "validate:migration": "legacy-validator validate --root ./docs/migration --report ./reports/migration-validation-report.md"
+  },
+  "devDependencies": {
+    "legacy-migration-validator-cli": "git+https://github.com/<owner>/legacy-migration-validator-cli.git#<commit-or-tag>"
+  },
+  "frameworkKitNote": "Confirm the exact validator pin in Phase 17; commit hash pinning is the default recommendation."
+}

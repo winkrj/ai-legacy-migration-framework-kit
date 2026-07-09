@@ -1,44 +1,44 @@
-# Discover
+# 분석 (Discover)
 
-## Status
+## 상태
 
 Status: Not Started
 Implementation: Not Started
 Automation: Not Started
 MCP/Plugin: Deferred
 
-## Scope
+## 범위
 
-### Included
+### 포함
 
-- <legacy behavior to inspect>
+- <점검할 레거시 동작>
 
-### Excluded
+### 제외
 
-- <out-of-scope behavior>
+- <범위 밖 동작>
 
-## Sources
+## 출처
 
-| ID | Source Type | Sanitized Reference | Access |
+| ID | 출처 유형 | 정제된 참조 | 접근 |
 |---|---|---|---|
-| SRC-001 | Code / Test / Document | `<public-safe reference>` | Read-only |
+| SRC-001 | Code / Test / Document | `<공개 가능한 참조>` | Read-only |
 
-## Findings
+## 발견
 
-| ID | Source | Evidence Level | Finding |
+| ID | 출처 | 근거 수준 | 발견 내용 |
 |---|---|---|---|
-| EV-001 | SRC-001 | Confirmed / Observed / Inferred | <observed behavior> |
+| EV-001 | SRC-001 | Confirmed / Observed / Inferred | <관찰된 동작> |
 
-## Legacy Flow
+## 레거시 흐름
 
 ```text
-Entry → Service → Data Access → Result
+진입점 → 서비스 → 데이터 접근 → 결과
 ```
 
-## Risks
+## 리스크
 
-- <risk>
+- <리스크>
 
-## Open Questions
+## 미결 질문
 
-- <OQ-ID>
+- <OQ-ID — `99_Open-Questions.md`와 연결>
