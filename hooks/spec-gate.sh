@@ -38,9 +38,9 @@ case "$file_path" in
   *)  abs="$root/$file_path" ;;
 esac
 
-# 승인 전에도 이관 문서와 리포트는 작성 가능
+# 승인 전에도 이관 문서, 리포트, Claude Code 설정은 작성 가능
 case "$abs" in
-  "$root/docs/migration/"* | "$root/reports/"*) exit 0 ;;
+  "$root/docs/migration/"* | "$root/reports/"* | "$root/.claude/"*) exit 0 ;;
 esac
 
 echo "BLOCKED by legacy-migration spec gate: docs/migration/$feature/02_Spec.md의 구현 승인 체크박스가 아직 체크되지 않았습니다. 승인 전에는 이관 문서(docs/migration/, reports/) 밖의 파일을 수정할 수 없습니다. 사용자에게 스펙 검토와 승인 체크를 요청하고 멈추세요." >&2
