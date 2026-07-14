@@ -45,6 +45,7 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 - **산출물**: `01_Discover.md` (필수 섹션: Status / Sources / Findings / Open Questions)
 - **AI 프롬프트**: `prompts/codex/02_legacy-discover.md`
 - **핵심 규칙**: 레거시 read-only. 코드/쿼리/테스트에서 **본 것만** Findings에 적는다. Evidence Level을 구분한다 — Confirmed(코드로 확인) / Observed(패턴 관찰) / Inferred(추론, 구현 금지).
+- **인용 없는 근거는 근거가 아니다**: Confirmed는 `파일경로:라인` + 코드 1~3줄 인용이 있을 때만. call chain(JSP→Controller→Service→Client→환경설정)의 각 hop을 직접 열어 확인한다 — 안 연 hop부터 Inferred. 응답값만 보고 로직을 판단하지 않는다.
 - **통과 조건**: 진입점→흐름→쿼리 조건이 추적됐고, 확인 못 한 것이 Open Questions에 ID로 등록됨.
 - **함정**: "레거시가 이렇게 하니까 Target도 이래야 한다"는 판단을 여기서 하지 마라. Legacy 관찰 ≠ Target 요구사항.
 
@@ -54,6 +55,8 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 - **AI 프롬프트**: `prompts/codex/03_spec-generate.md`
 - **문서 단위**: 큰 단위는 **메뉴/feature**, 상세 계약 단위는 **API**, 구현/검증 단위는 **task ID**.
 - **API 상세 스펙 표 필수**: 각 API를 한 행으로 적고, 행마다 최소 — API ID / Method·Path / 기능명 / 레거시 근거(JSP·config·controller·service·mapper·query) / 요청 파라미터·body / 응답 field / DB read·write / 외부 연동 / business rule / empty·error 정책 / 미결(OQ) / **연결 Task ID**. 표가 없거나 행에 API ID·Task ID가 없으면 Validator가 error(`API_SPEC_TABLE`/`API_TASK_LINK`)를 낸다.
+- **레거시 근거는 인용만 인정**: `파일경로:라인` + 코드 1~3줄. 인용 패턴이 없으면 Validator가 warning(`EVIDENCE_CITATION`)을 낸다.
+- **외부 연동이 있는 API는 External Route Matrix 필수**: 직접 vs 프록시(gpapi류), 환경별 host/base path/인증을 환경설정 인용으로 확정. 없으면 Validator가 error(`EXTERNAL_ROUTE_MATRIX`)를 낸다. 확정 못 한 값은 Open Question으로.
 - **핵심 작업**: Discover 결과를 rule/API 단위로 분해하고 각 항목에 표시:
   - **Evidence Status**: Legacy Confirmed / Target Confirmed / Inferred / Policy Difference ...
   - **Implementation Permission**: 기본 **Not Granted** — 사람이 명시해야만 바뀐다
@@ -79,6 +82,8 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 - **산출물**: 코드 + `04_Implement.md` (상태 / 구현 메모 / 변경 파일)
 - **핵심 규칙**:
   - **Implementation Permission이 Granted된 `IMPL-API-NNN` task만** 구현한다. **task ID 없는 구현은 금지**한다.
+  - **구현 직전 binding 컨벤션 재주입**: `docs/conventions/binding-rules.md`(Approved)를 다시 읽고, 구현 후 규칙별 `지켰음`/`예외(사유)` 대조표를 04_Implement에 남긴다.
+  - **2-pass**: Pass 1(동작+테스트) → Pass 2(정리: 책임 분리·이름·null 흐름·중복). Pass 2 기록 없이 완료 표시하지 않는다.
   - 작은 단위로(1~5파일). 예상 밖 API·파일·외부 연동을 건드려야 하면 **멈추고 질문**한다.
   - 구현 후 해당 task와 validation evidence(연결 `VAL-API-NNN`)를 갱신한다.
   - 권한이 없는데 IMPL task를 완료(`- [x]`)로 표시하거나, 미해결 Open Question이 있는데 권한을 Granted로 바꾸면 Validator가 error(`PERMISSION_COMPLETION`/`PERMISSION_OPEN_QUESTION`)를 낸다.

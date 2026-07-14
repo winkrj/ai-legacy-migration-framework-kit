@@ -18,7 +18,7 @@ MCP/Plugin: Deferred
 
 | API ID | Method/Path | 기능명 | 레거시 근거 | 요청 파라미터/body | 응답 field | DB R/W | 외부 연동 | business rule | empty/error 정책 | 미결(OQ) | 연결 Task |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| API-001 | `GET /contents` | 콘텐츠 조회 | mapper 조회 (합성 예시) | `category`, `publishedStatus`, `page` (선택) | id, title, category, publishedStatus | R: `synthetic-content` | 없음 | RULE-001, RULE-002 | 빈 컬렉션 반환, 에러 없음 | OQ-EX-001 | PLAN-API-001, IMPL-API-001, VAL-API-001 |
+| API-001 | `GET /contents` | 콘텐츠 조회 | `ContentMapper.xml:34` "SELECT ... WHERE published = ?" (합성 예시) | `category`, `publishedStatus`, `page` (선택) | id, title, category, publishedStatus | R: `synthetic-content` | 없음 | RULE-001, RULE-002 | 빈 컬렉션 반환, 에러 없음 | OQ-EX-001 | PLAN-API-001, IMPL-API-001, VAL-API-001 |
 
 ## 데이터 매핑
 

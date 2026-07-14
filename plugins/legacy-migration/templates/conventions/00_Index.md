@@ -12,6 +12,7 @@ Human approval 전에는 어떤 draft도 binding AI Agent rule 또는 Implementa
 
 ## Templates
 
+- `binding-rules-template.md` — **위반=리젝 규칙 10줄 이내.** 구현 직전 재주입되는 유일한 binding 문서. 나머지는 참고용.
 - `project-conventions-template.md`
 - `layer-responsibility-template.md`
 - `dto-policy-template.md`
