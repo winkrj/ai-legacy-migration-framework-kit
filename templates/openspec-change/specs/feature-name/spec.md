@@ -1,30 +1,13 @@
 # Capability: <feature-name>
 
-> Requirement는 `02_Specify.md`의 API ID와 연결한다. 고정 토큰(SHALL/Given/When/Then/Scenario)만 영어를 유지하고 설명은 한글로 쓴다.
+> **계약의 단일 진실은 `02_Specify.md`의 API별 상세 스펙이다.** 시나리오(Given/When/Then)와 Acceptance Criteria를 이 파일에 복사하지 않는다 — 두 곳에 있으면 반드시 어긋난다.
+> 이 파일은 승인 대상 requirement를 API ID로 가리키는 색인만 유지한다.
 
 ## Requirements
 
-### Requirement: 이관된 콘텐츠 조회 (API-001)
-
-Target 시스템은 승인된 조회 계약을 만족하는 콘텐츠를 반환**해야 한다(SHALL)**.
-
-#### Scenario: 기본 조회
-
-- **Given** 승인된 샘플 콘텐츠가 존재하고
-- **When** 유효한 조회가 들어오면
-- **Then** 조건에 맞는 콘텐츠를 반환한다
-
-#### Scenario: 빈 결과
-
-- **Given** 일치하는 콘텐츠가 없고
-- **When** 유효한 조회가 들어오면
-- **Then** 데이터를 지어내지 않고 빈 결과를 반환한다
-
-#### Scenario: 잘못된 파라미터
-
-- **Given** 파라미터가 승인된 계약을 위반하고
-- **When** 조회가 들어오면
-- **Then** 문서화된 검증 에러를 반환한다
+| Requirement | API ID | 계약 위치 | 승인 |
+|---|---|---|---|
+| <한 줄 요약 — SHALL 문장> | API-001 | `02_Specify.md` §API-001 (시나리오·AC 포함) | Draft / Approved |
 
 ## Open Questions
 

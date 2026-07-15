@@ -6,9 +6,9 @@
 
 ## API-001 <기능명>
 
-- [ ] PLAN-API-001 — 계획·권한 확정 (연결: API-001, spec: `<capability §Requirement>`)
+- [ ] PLAN-API-001 — 계획·권한 확정 (연결: API-001, spec: `02_Specify.md` §API-001)
 - [ ] IMPL-API-001 — 승인된 범위만 구현 (연결: API-001) · PLAN 승인 + Implementation Permission Granted 이후에만
-- [ ] VAL-API-001 — 테스트/evidence 확인 (연결: API-001)
+- [ ] VAL-API-001 — Acceptance Criteria(AC-001-*)별로 테스트/evidence 확인 (연결: API-001)
 
 ## 승인·권한
 

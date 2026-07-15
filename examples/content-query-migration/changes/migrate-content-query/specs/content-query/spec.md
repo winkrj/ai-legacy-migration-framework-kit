@@ -1,27 +1,13 @@
 # Capability: content-query
 
+> 계약의 단일 진실은 `docs/migration/case-01-content-query/02_Specify.md`의 API별 상세 스펙이다. 이 파일은 requirement 색인만 유지한다 — GWT를 여기 복사하지 않는다.
+
 ## Requirements
 
-### Requirement: Query migrated content
+| Requirement | API ID | 계약 위치 | 승인 |
+|---|---|---|---|
+| Target 시스템은 승인된 조회 계약을 만족하는 콘텐츠를 반환해야 한다(SHALL) | API-001 | `02_Specify.md` §API-001 (시나리오·AC-001-1~3) | Draft |
 
-The example target SHALL return matching synthetic content for an approved query.
+## Open Questions
 
-#### Scenario: Basic query
-- **Given** synthetic content exists
-- **When** a valid query is submitted
-- **Then** matching summaries are returned
-
-#### Scenario: Empty result
-- **Given** no content matches
-- **When** a valid query is submitted
-- **Then** an empty collection is returned
-
-#### Scenario: Filtered result
-- **Given** synthetic categories exist
-- **When** a category filter is supplied
-- **Then** only matching summaries are returned
-
-#### Scenario: Invalid parameter
-- **Given** a parameter violates the approved contract
-- **When** the query is submitted
-- **Then** a documented validation error is returned
+- OQ-EX-001

@@ -1,7 +1,7 @@
 {
   "name": "legacy-migration",
   "description": "AI Legacy Migration Framework Kit — 레거시 기능을 근거 기반 스펙으로 분석하고, 사람 승인 후에만 새 프로젝트로 이관하는 워크플로우. 분석/스펙/구현 단계 분리 커맨드, 스펙 승인 게이트 훅, 이관 템플릿 포함.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": {
     "name": "winkrj"
   }

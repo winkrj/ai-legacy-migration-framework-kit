@@ -22,11 +22,12 @@ Validation Mode는 케이스를 어떻게 검증했는지를 설명할 뿐, Impl
 
 ## 검증 결과
 
-> API/Task 단위로 검증 결과를 남긴다. VAL task와 연결한다.
+> **Acceptance Criteria 단위로** 검증 결과를 남긴다 — 테스트 통과가 아니라 AC 커버리지가 완료 기준이다. 커버 안 된 AC는 빈 행으로 남겨서 보이게 한다.
 
-| API ID | Task | Evidence / Test | 기대 | 관찰 | 결과 |
-|---|---|---|---|---|---|
-| API-001 | VAL-API-001 | TEST-001 |  |  | Not Run |
+| API ID | Task | AC | Evidence / Test | 기대 | 관찰 | 결과 |
+|---|---|---|---|---|---|---|
+| API-001 | VAL-API-001 | AC-001-1 | TEST-001 |  |  | Not Run |
+| API-001 | VAL-API-001 | AC-001-2 |  |  |  | Not Run |
 
 ## 호환성 점검
 

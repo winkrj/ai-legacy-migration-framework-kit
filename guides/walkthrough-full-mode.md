@@ -51,10 +51,11 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 
 ### 3-2. Specify — 사실과 결정을 분리
 
-- **산출물**: `02_Specify.md` (상태 / 도메인 규칙 / **API 상세 스펙** / 데이터 매핑 / 미결 질문)
+- **산출물**: `02_Specify.md` — 이 문서가 케이스의 **단일 계약(SDD)**이다 (상태 / 범위와 용어 / 공통 규칙 / 도메인 규칙 / **API 목록** / **API별 상세 스펙** / 미결 질문)
 - **AI 프롬프트**: `prompts/codex/03_spec-generate.md`
 - **문서 단위**: 큰 단위는 **메뉴/feature**, 상세 계약 단위는 **API**, 구현/검증 단위는 **task ID**.
-- **API 상세 스펙 표 필수**: 각 API를 한 행으로 적고, 행마다 최소 — API ID / Method·Path / 기능명 / 레거시 근거(JSP·config·controller·service·mapper·query) / 요청 파라미터·body / 응답 field / DB read·write / 외부 연동 / business rule / empty·error 정책 / 미결(OQ) / **연결 Task ID**. 표가 없거나 행에 API ID·Task ID가 없으면 Validator가 error(`API_SPEC_TABLE`/`API_TASK_LINK`)를 낸다.
+- **표는 색인, 계약은 섹션**: `API 목록` 표(API ID / Method·Path / 기능명 / 근거 인용 / 외부 연동 / OQ / 연결 Task)는 색인이고, 실제 계약은 API마다 `### API-NNN` 상세 섹션에 쓴다 — 목적 / 권한·사전조건 / **시나리오(Given/When/Then)** / Request / Response(레거시 원 필드 매핑 포함) / 레거시 호출 흐름(인용) / DB·외부 연동 / 변환 규칙 / 오류·빈 결과 / **Acceptance Criteria(AC ID)** / 연결 Task. 표의 API ID에 상세 섹션이나 필수 하위 섹션이 없으면 Validator가 error(`API_DETAIL_SECTION`)를 낸다.
+- **공통 규칙은 재서술 금지**: 인증/응답/에러/페이징은 Approved 컨벤션을 링크하고 케이스 예외만 적는다.
 - **레거시 근거는 인용만 인정**: `파일경로:라인` + 코드 1~3줄. 인용 패턴이 없으면 Validator가 warning(`EVIDENCE_CITATION`)을 낸다.
 - **외부 연동이 있는 API는 External Route Matrix 필수**: 직접 vs 프록시(gpapi류), 환경별 host/base path/인증을 환경설정 인용으로 확정. 없으면 Validator가 error(`EXTERNAL_ROUTE_MATRIX`)를 낸다. 확정 못 한 값은 Open Question으로.
 - **핵심 작업**: Discover 결과를 rule/API 단위로 분해하고 각 항목에 표시:
@@ -68,7 +69,8 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 - **산출물**: `changes/<change-name>/` 아래 `proposal.md` + `tasks.md` + `specs/<capability>/spec.md`
 - **AI 프롬프트**: `prompts/codex/04_openspec-generate.md`
 - **tasks.md는 API ID 기준**: `02_Specify.md`의 각 API ID마다 `PLAN-API-NNN`(계획·권한) / `IMPL-API-NNN`(구현) / `VAL-API-NNN`(검증) 세 task를 만든다. NNN은 API ID와 같은 번호로 맞추고, 각 task는 어떤 requirement/API spec에 연결되는지 적는다. 세 종류가 다 없으면 Validator가 error(`TASK_ID_TRIAD`)를 낸다.
-- **작성 요령**: Requirement + Given/When/Then Scenario. **미해결 결정은 requirement로 위장하지 말고** `[DECISION PENDING]`으로 표시하거나 Open Question으로 뺀다. Non-goals(안 하는 것)를 명시한다.
+- **spec.md는 포인터**: 시나리오(GWT)와 Acceptance Criteria의 단일 진실은 `02_Specify.md`의 API별 상세 섹션이다. `specs/<capability>/spec.md`에는 requirement 색인(한 줄 요약 + API ID + 계약 위치)만 남긴다 — **GWT를 두 곳에 복사하지 않는다.**
+- **작성 요령**: **미해결 결정은 requirement로 위장하지 말고** `[DECISION PENDING]`으로 표시하거나 Open Question으로 뺀다. Non-goals(안 하는 것)를 명시한다.
 - **통과 조건**: 사람이 결정 항목을 모두 결정하고 proposal을 승인. 이때 `[DECISION PENDING]` → 결정 반영, runtime 확인 필요한 것만 `[RUNTIME VERIFICATION PENDING]`으로 남김.
 
 ### 3-4. Plan — 승인된 것만 작업으로
@@ -130,9 +132,10 @@ legacy-validator validate \
 실제 케이스에서 걸렸던 것들이다. 이것만 지키면 첫 실행에 exit 0이 나온다:
 
 1. **파일 8개 이름을 바꾸지 마라** — `00_Index.md` ~ `99_Open-Questions.md` 이름 그대로. 하위 폴더 깊이는 자유.
-2. **템플릿의 섹션 헤딩을 지우지 마라** — 헤딩은 한글/영어 alias를 함께 허용한다. 예: `02_Specify.md`의 `## API 상세 스펙`(= `API Map`/`API Spec`), `## 데이터 매핑`(= `DB Map`)은 비어 있어도 헤딩은 있어야 한다.
-2-1. **`02_Specify.md`에는 API 상세 스펙 표가 필수** — `API ID` 열과 `연결 Task` 열이 있어야 하고, 각 행에 `API-NNN`과 `PLAN/IMPL/VAL-API-NNN`이 있어야 한다.
-2-2. **`tasks.md`는 API ID 기준 triad** — 각 API 번호마다 `PLAN`/`IMPL`/`VAL` 세 task가 다 있어야 한다.
+2. **템플릿의 섹션 헤딩을 지우지 마라** — 헤딩은 한글/영어 alias를 함께 허용한다. 예: `02_Specify.md`의 `## API 목록`(= `API Map`/`API Spec`), `## 공통 규칙`, `## API별 상세 스펙`은 비어 있어도 헤딩은 있어야 한다.
+2-1. **`02_Specify.md`에는 API 색인 표가 필수** — `API ID` 열과 `연결 Task` 열이 있어야 하고, 각 행에 `API-NNN`과 `PLAN/IMPL/VAL-API-NNN`이 있어야 한다.
+2-2. **표의 모든 API ID마다 `### API-NNN` 상세 섹션 필수** — 하위 heading 시나리오 / Request / Response / 오류·빈 결과 / Acceptance Criteria / 연결 Task를 지우면 error(`API_DETAIL_SECTION`)다.
+2-3. **`tasks.md`는 API ID 기준 triad** — 각 API 번호마다 `PLAN`/`IMPL`/`VAL` 세 task가 다 있어야 한다.
 2-3. **권한 게이트** — 권한을 Granted 안 한 채 IMPL task를 `- [x]`로 표시하거나, `Open`인 Open Question이 남았는데 권한을 Granted로 바꾸면 error다.
 3. **상태 값은 정해진 어휘만** — `Status:` `Decision:` `Implementation:` 등의 줄에는 다음 값만 허용:
    `Not Started / Planning / Preparation / In Progress / Ready for Review / Ready for Archive / Approved / Rejected / Archive with Conditions / Archived / Deferred / Accepted / Not Granted / Completed`
