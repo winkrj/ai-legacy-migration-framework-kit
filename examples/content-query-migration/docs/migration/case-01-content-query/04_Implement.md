@@ -1,6 +1,6 @@
-# Implement
+# 구현 (Implement)
 
-## Status
+## 상태
 
 Status: Not Started
 Implementation: Not Started
@@ -11,16 +11,30 @@ MCP/Plugin: Deferred
 
 Implementation Permission: Not Granted
 
-## Approved Tasks
+## 승인된 Task
 
 - None
 
-## Implementation Notes
+## 구현 메모
 
-| Task | Result | Tests |
+| Task | 결과 | 테스트 |
 |---|---|---|
-| Example only | Not Performed | Not Run |
+| IMPL-API-001 | Not Performed | Not Run |
 
-## Changed Files
+## 변경 파일
 
 - None
+
+## 2-Pass 기록
+
+| Task | Pass 1 (동작/테스트) | Pass 2 — 책임 분리 | Pass 2 — 이름/magic value | Pass 2 — null 흐름 | Pass 2 — 중복/추상화 |
+|---|---|---|---|---|---|
+| IMPL-API-001 | Not Performed |  |  |  |  |
+
+## Binding 컨벤션 대조
+
+binding 컨벤션 미등록 (예시 케이스).
+
+## 이탈 사항
+
+- 없음

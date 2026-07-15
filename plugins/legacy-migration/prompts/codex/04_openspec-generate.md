@@ -1,7 +1,7 @@
 ---
 type: ai-instruction
 audience: ai
-language: en
+language: ko
 tags:
   - ai-only
   - agent
@@ -9,51 +9,42 @@ tags:
   - prompt
 ---
 
-# OpenSpec Generate
+# OpenSpec Generate — proposal + tasks (spec.md는 포인터)
 
-## Purpose
+## 목적
 
-Generate an implementation-neutral, developer-facing OpenSpec-style change specification.
+`{{FEATURE_NAME}}`의 OpenSpec change(`proposal.md` + `tasks.md` + `specs/<capability>/spec.md`)를 생성한다. **계약의 단일 진실은 `02_Specify.md`다** — GWT/AC를 여기 복사하지 않는다.
 
-## When To Use
+## 사용 시점
 
-Use after Domain Spec review and before Plan or implementation approval.
+`02_Specify.md`(SDD) 리뷰 후, Plan 전.
 
-## Inputs
+## 입력
 
-- Feature: `{{FEATURE_NAME}}`
-- Domain Spec: `{{SPEC_DIR}}`
-- Framework root: `{{FRAMEWORK_REPOSITORY_ROOT}}`
-- Target project root: `{{TARGET_PROJECT_ROOT}}`
-- Output: `{{OUTPUT_DIR}}`
+- SDD: `{{SPEC_DIR}}/02_Specify.md`
+- 템플릿: `templates/openspec-change/`
+- 산출 위치: `{{OUTPUT_DIR}}`
 
-## Instructions
+## 지시
 
-1. Select Framework Repository or Target Project Repository output mode.
-2. Write traceable requirements and Given/When/Then scenarios.
-3. Add acceptance criteria, impacted APIs, impacted DB/query areas, migration compatibility notes, and non-goals.
-4. Preserve policy decisions and Open Questions explicitly.
-5. Ensure Target Project output is understandable without Personal Obsidian.
+1. `proposal.md`: 필요성, 변경 대상, 레거시 동작 요약(인용 참조), Non-goals, 리스크, Open Questions.
+2. `tasks.md`는 **API ID 기준**으로 생성: 02_Specify의 각 `API-NNN`마다 `PLAN-API-NNN`(계획·권한) / `IMPL-API-NNN`(구현) / `VAL-API-NNN`(AC별 검증) 세 task. 각 task에 연결 API와 spec 위치(§API-NNN)를 적는다.
+3. `specs/<capability>/spec.md`는 **requirement 색인(포인터)만**: 한 줄 SHALL 요약 + API ID + 계약 위치. GWT를 복사하지 않는다.
+4. 미해결 결정은 requirement로 위장하지 말고 `[DECISION PENDING]` 또는 Open Question으로 뺀다.
+5. `Implementation Permission: Not Granted`를 유지한다 — 승인은 사람 몫.
 
-## Required Output
+## 산출물
 
-- Requirements and scenarios
-- Acceptance criteria
-- Impacted API and DB/query areas
-- Migration compatibility notes
-- Non-goals and Open Questions
-- Requirement-to-scenario traceability
+- `proposal.md`, `tasks.md`(PLAN/IMPL/VAL triad — validator `TASK_ID_TRIAD` 통과), `specs/<capability>/spec.md`(포인터)
 
-## Constraints
+## 금지
 
-- Do not write implementation code.
-- Do not hide unresolved policy decisions.
-- Do not claim unverified behavior.
+- 구현 코드 작성, 미결 정책 은폐, GWT/AC의 spec.md 복사(진실 두 개 금지), 검증 안 된 동작 주장.
 
-## Safety Rules
+## 안전
 
-Do not include internal secrets or personal absolute paths. Sanitize reusable examples.
+- 사내 secret과 개인 절대경로를 넣지 않는다.
 
 ## Codex Execution Report
 
-Report output mode, traceability coverage, unresolved decisions, and `Implementation: Not Performed`.
+traceability 커버리지, 미결 결정, `Implementation: Not Performed`를 보고한다.

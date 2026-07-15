@@ -1,7 +1,7 @@
 ---
 type: ai-instruction
 audience: ai
-language: en
+language: ko
 tags:
   - ai-only
   - agent
@@ -9,49 +9,43 @@ tags:
   - prompt
 ---
 
-# Gap Review
+# Gap Review — 차이 분류, 수정 자동 승인 없음
 
-## Purpose
+## 목적
 
-Compare Legacy evidence, Domain Spec, Target behavior, and Open Questions without automatically authorizing a fix.
+레거시 근거, `02_Specify.md`(SDD), Target 동작, Open Questions를 비교해 차이를 분류한다. 수정을 자동으로 승인하지 않는다.
 
-## When To Use
+## 사용 시점
 
-Use after Legacy and Target evidence are available.
+레거시와 Target 근거가 모두 준비된 뒤 (review 케이스 또는 구현 후 대조).
 
-## Inputs
+## 입력
 
-- Legacy evidence: `{{LEGACY_SCOPE}}`
-- Target evidence: `{{TARGET_SCOPE}}`
-- Specs: `{{SPEC_DIR}}`
-- Output: `{{OUTPUT_DIR}}`
+- 레거시 근거: `{{LEGACY_SCOPE}}`
+- Target 근거: `{{TARGET_SCOPE}}`
+- SDD: `{{SPEC_DIR}}/02_Specify.md`
+- 산출 위치: `{{OUTPUT_DIR}}`
 
-## Instructions
+## 지시
 
-1. Cite Legacy, Spec, and Target evidence separately.
-2. Classify each item as `Confirmed Gap`, `Policy Difference`, `Improvement / Intentional Change Candidate`, `Open Question`, or `No Gap`.
-3. Assign severity and `Blocked By`: `Human Policy Decision`, `Runtime Verification`, `Missing Evidence`, `External Owner Confirmation`, or `None`.
-4. Record Implementation Permission, candidate fix, required validation, and no-fix justification.
-5. Preserve all unresolved Open Questions.
+1. 레거시/스펙/Target 근거를 **각각 `파일:라인` 인용으로** 분리 기록한다. 인용 없는 근거는 근거가 아니다.
+2. 항목마다 분류: `Confirmed Gap` / `Policy Difference` / `Intentional Improvement 후보` / `Open Question` / `No Gap`. **API ID 단위로** 정리한다.
+3. 심각도와 `Blocked By`(Human Policy Decision / Runtime Verification / Missing Evidence / External Owner Confirmation / None)를 지정한다.
+4. 후보 수정안·필요 검증·수정하지 않는 이유를 기록하되 Implementation Permission은 바꾸지 않는다.
+5. Open Questions를 임의로 닫지 않는다.
 
-## Required Output
+## 산출물
 
-- Gap Review and gap table
-- Gap type, severity, Blocked By, and evidence
-- Implementation Permission
-- Candidate fix or no-fix justification
-- Required validation and Human Decision Needed
+- Gap 표 (API ID / 분류 / 심각도 / Blocked By / 근거 인용 3종 / 후보 조치 / 사람 결정 필요 여부)
 
-## Constraints
+## 금지
 
-- Do not treat Policy Difference as a bug.
-- Do not authorize implementation without human approval.
-- Do not close Open Questions.
+- Policy Difference의 버그 취급, 사람 승인 없는 구현 허가, Open Question 종결.
 
-## Safety Rules
+## 안전
 
-Keep internal evidence sanitized and do not copy raw secrets or private topology.
+- 원본 secret과 내부 토폴로지를 복사하지 않는다.
 
 ## Codex Execution Report
 
-Report gap counts, permission state, blockers, files changed, and validation performed.
+gap 수, permission 상태, blocker, 수행한 검증을 보고한다.

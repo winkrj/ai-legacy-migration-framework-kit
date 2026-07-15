@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Codex 사본 drift 검사
+        run: node scripts/sync-codex-plugin.mjs --check
+
+      - name: Validator CLI 준비
+        run: |
+          git clone --depth 1 https://github.com/winkrj/legacy-migration-validator-cli.git /tmp/validator
+          cd /tmp/validator && npm ci
+
+      - name: Full 템플릿 검증
+        run: |
+          node /tmp/validator/dist/index.js validate \
+            --root templates/migration-docs \
+            --report /tmp/template-report.md
+
+      - name: 예제 케이스 검증 (docs + changes)
+        run: |
+          node /tmp/validator/dist/index.js validate \
+            --root examples/content-query-migration/docs/migration/case-01-content-query \
+            --root examples/content-query-migration/changes/migrate-content-query \
+            --report /tmp/example-report.md
+
+      - name: spec-gate 훅 smoke test
+        run: |
+          T=$(mktemp -d) && cd "$T"
+          git init -q && git -c user.email=ci@ci -c user.name=ci commit -qm init --allow-empty
+          git checkout -qb feature/ai-migration-x
+          mkdir -p docs/migration/x
+          payload='{"tool_input":{"file_path":"src/Main.java"}}'
+          # 미승인 → 차단(exit 2)
+          echo "$payload" | bash "$GITHUB_WORKSPACE/hooks/spec-gate.sh" && exit 1 || [ $? -eq 2 ]
+          # Full 모드 Granted → 허용
+          printf 'Implementation Permission: Granted\n' > docs/migration/x/03_Plan.md
+          echo "$payload" | bash "$GITHUB_WORKSPACE/hooks/spec-gate.sh"

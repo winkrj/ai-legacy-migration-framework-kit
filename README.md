@@ -184,6 +184,13 @@ prompts/                  복붙용 시작 프롬프트
 
 ## 변경 이력
 
+### 0.7.0 — 내부 모순 제거와 자동화
+- **prompts/codex 7종 전면 재작성** — 한글 + SDD 구조 기준. 기존 프롬프트는 구버전 스펙 구조를 지시해 validator와 모순됐음
+- **spec-gate 훅 Full 모드 지원** — Light 체크박스 외에 `03_Plan.md`의 `Implementation Permission: Granted*`도 승인 신호로 인정 (기존엔 Full 모드 구현이 영구 차단되는 버그)
+- **validator 다중 root 연동** — walkthrough의 검증 명령이 `docs/migration/<case>`와 `changes/<change>`를 함께 검사하도록 갱신 (tasks.md 게이트 실효화)
+- **GitHub Actions CI** — codex 사본 drift 검사, 템플릿·예제 validator 검증, spec-gate smoke test
+- `sync-codex --check` 모드 추가, 예제(01/04/05)를 새 템플릿 패턴(인용 열·2-Pass·AC 표)으로 갱신
+
 ### 0.6.0 — 스펙 문서를 SDD로: 표는 색인, 계약은 섹션
 - `02_Specify.md`(Full)·`02_Spec.md`(Light)를 **SDD 구조**로 개편: 범위와 용어 / 공통 규칙(컨벤션 참조+예외만) / API 목록(색인 표) / **API별 상세 스펙 섹션** — 목적 / 권한·사전조건 / 시나리오(GWT) / Request / Response(레거시 원 필드 매핑) / 레거시 호출 흐름(인용) / DB·외부 연동 / 변환 규칙 / 오류·빈 결과 / **Acceptance Criteria** / 연결 Task
 - **GWT/AC의 단일 진실은 02_Spec** — OpenSpec `spec.md`는 requirement 색인(포인터)으로 축소, 두 곳 복사로 인한 drift 차단

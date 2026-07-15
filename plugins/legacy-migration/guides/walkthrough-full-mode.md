@@ -100,9 +100,12 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 - **Validator CLI 실행** (문서 계약 검사):
 
 ```bash
+# --root를 두 번 줘서 케이스 문서와 OpenSpec change(tasks.md)를 함께 검사한다.
+# tasks.md가 검사에 포함돼야 TASK_ID_TRIAD·권한 게이트 룰이 실제로 동작한다.
 legacy-validator validate \
   --root ./docs/migration/<case-name> \
-  --report ./reports/<case-name>-validation-report.md   # root 밖!
+  --root ./changes/<change-name> \
+  --report ./reports/<case-name>-validation-report.md   # 모든 root 밖!
 ```
 
 ### 3-7. Archive — 정직한 종료
