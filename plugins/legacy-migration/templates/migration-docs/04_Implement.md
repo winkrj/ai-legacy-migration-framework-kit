@@ -30,8 +30,9 @@ Implementation Permission: Not Granted
 ## 2-Pass 기록
 
 > Pass 1(동작)과 Pass 2(정리)는 분리해서 수행하고 각각 기록한다. Pass 2 없이 완료 표시하지 않는다.
+> Pass 2 점검: 책임 분리 / 이름(비즈니스 의도, `data`·`temp`·`util`류 금지) / 조건문(보호 절 우선) / null 흐름(원인 로그 보존) / 중복·추상화(성급한 추상화 금지). 요청 범위 초과 리팩터링은 하지 않는다.
 
-| Task | Pass 1 (동작/테스트) | Pass 2 — 책임 분리 | Pass 2 — 이름/magic value | Pass 2 — null 흐름 | Pass 2 — 중복/추상화 |
+| Task | Pass 1 (동작/테스트) | Pass 2 — 책임 분리 | Pass 2 — 이름/조건문 | Pass 2 — null 흐름 | Pass 2 — 중복/추상화 |
 |---|---|---|---|---|---|
 | IMPL-API-001 | Not Performed |  |  |  |  |
 

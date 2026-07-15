@@ -27,7 +27,7 @@ Implementation Permission: Not Granted
 
 ## 2-Pass 기록
 
-| Task | Pass 1 (동작/테스트) | Pass 2 — 책임 분리 | Pass 2 — 이름/magic value | Pass 2 — null 흐름 | Pass 2 — 중복/추상화 |
+| Task | Pass 1 (동작/테스트) | Pass 2 — 책임 분리 | Pass 2 — 이름/조건문 | Pass 2 — null 흐름 | Pass 2 — 중복/추상화 |
 |---|---|---|---|---|---|
 | IMPL-API-001 | Not Performed |  |  |  |  |
 
