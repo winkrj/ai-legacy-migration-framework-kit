@@ -86,7 +86,9 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
   - **Implementation Permission이 Granted된 `IMPL-API-NNN` task만** 구현한다. **task ID 없는 구현은 금지**한다.
   - **구현 직전 binding 컨벤션 재주입**: `docs/conventions/binding-rules.md`(Approved)를 다시 읽고, 구현 후 규칙별 `지켰음`/`예외(사유)` 대조표를 04_Implement에 남긴다.
   - **2-pass**: Pass 1(동작+테스트) → Pass 2(정리: 책임 분리 · 이름[비즈니스 의도, `data`/`temp`/`util`류 금지] · 조건문[보호 절 우선] · null 흐름 · 중복/추상화[성급한 추상화 금지]). Pass 2 기록 없이 완료 표시하지 않는다. 요청 범위를 넘어선 리팩터링·기존 API 변경은 하지 않는다.
-  - 작은 단위로(1~5파일). 예상 밖 API·파일·외부 연동을 건드려야 하면 **멈추고 질문**한다.
+  - **구현 단위는 세로 슬라이스**: IMPL task 하나(= API 하나)를 domain → repository → controller → 테스트까지 **한 번에 관통**해서 완성한다. 계층별로 쪼개서("domain 만들었습니다 → controller 만들겠습니다") 중간 보고하지 않는다.
+  - **묶음 실행이 기본**: Permission이 Granted된 IMPL task가 여러 개면 멈추지 않고 연속 수행한다. task별 기록(04_Implement, tasks.md 체크)은 각각 남기되, **사용자 보고는 묶음이 끝났을 때 한 번**만 한다.
+  - **멈춤 조건은 이것뿐** (해당 없으면 멈추지 않는다): ① 스펙에 없는 동작 필요 ② task 없는 API·파일·외부 연동 발견 ③ 기존 코드의 교체·삭제 필요(승인된 task 범위 명시가 없다면 — 묶음 실행이 범위 확장 허가는 아니다) ④ 공유 코드 영향 ⑤ 해결 안 되는 테스트 실패 ⑥ 컨벤션·스펙 충돌.
   - 구현 후 해당 task와 validation evidence(연결 `VAL-API-NNN`)를 갱신한다.
   - 권한이 없는데 IMPL task를 완료(`- [x]`)로 표시하거나, 미해결 Open Question이 있는데 권한을 Granted로 바꾸면 Validator가 error(`PERMISSION_COMPLETION`/`PERMISSION_OPEN_QUESTION`)를 낸다.
   - 테스트 실패를 숨기거나 assertion을 약화하지 않는다.
