@@ -81,18 +81,9 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 
 ### 3-5. Implement — 권한 있는 것만
 
-- **산출물**: 코드 + `04_Implement.md` (상태 / 구현 메모 / 변경 파일)
-- **핵심 규칙**:
-  - **Implementation Permission이 Granted된 `IMPL-API-NNN` task만** 구현한다. **task ID 없는 구현은 금지**한다.
-  - **구현 직전 binding 컨벤션 재주입**: `docs/conventions/binding-rules.md`(Approved)를 다시 읽고, 구현 후 규칙별 `지켰음`/`예외(사유)` 대조표를 04_Implement에 남긴다.
-  - **2-pass**: Pass 1(동작+테스트) → Pass 2(정리: 책임 분리 · 이름[비즈니스 의도, `data`/`temp`/`util`류 금지] · 조건문[보호 절 우선] · null 흐름 · 중복/추상화[성급한 추상화 금지]). Pass 2 기록 없이 완료 표시하지 않는다. 요청 범위를 넘어선 리팩터링·기존 API 변경은 하지 않는다.
-  - **턴 종료 계약**: 구현 중의 턴은 ① 완료 보고(실제 변경+검증) 또는 ② 멈춤 조건+질문으로만 끝난다. **"진행하겠습니다"류 선언으로 턴을 끝내지 않는다** — 하겠다고 말했으면 그 턴 안에서 한다. 승인이 이미 있으면 "그래" 확인을 다시 구하지 않는다.
-  - **구현 단위는 세로 슬라이스**: IMPL task 하나(= API 하나)를 domain → repository → controller → 테스트까지 **한 번에 관통**해서 완성한다. 계층별로 쪼개서("domain 만들었습니다 → controller 만들겠습니다") 중간 보고하지 않는다.
-  - **묶음 실행이 기본**: Permission이 Granted된 IMPL task가 여러 개면 멈추지 않고 연속 수행한다. task별 기록(04_Implement, tasks.md 체크)은 각각 남기되, **사용자 보고는 묶음이 끝났을 때 한 번**만 한다.
-  - **멈춤 조건은 이것뿐** (해당 없으면 멈추지 않는다): ① 스펙에 없는 동작 필요 ② task 없는 API·파일·외부 연동 발견 ③ 기존 코드의 교체·삭제 필요(승인된 task 범위 명시가 없다면 — 묶음 실행이 범위 확장 허가는 아니다) ④ 공유 코드 영향 ⑤ 해결 안 되는 테스트 실패 ⑥ 컨벤션·스펙 충돌.
-  - 구현 후 해당 task와 validation evidence(연결 `VAL-API-NNN`)를 갱신한다.
-  - 권한이 없는데 IMPL task를 완료(`- [x]`)로 표시하거나, 미해결 Open Question이 있는데 권한을 Granted로 바꾸면 Validator가 error(`PERMISSION_COMPLETION`/`PERMISSION_OPEN_QUESTION`)를 낸다.
-  - 테스트 실패를 숨기거나 assertion을 약화하지 않는다.
+- **산출물**: 코드 + `04_Implement.md` (상태 / 구현 메모 / 2-Pass 기록 / Binding 대조 / 변경 파일)
+- **AI 절차는 implement 커맨드/reference가 단일 진실이다**: 승인 확인 → **[구현 착수] 블록 출력**(이번 묶음 task ID·건드릴 파일·binding 요약·멈춤 조건 확인) → 승인된 `IMPL-API-NNN`들을 **세로 슬라이스**(API 하나를 domain→repo→controller→테스트 관통)로 **중간 보고 없이 연속 구현** → 정리 pass → **[완료 보고]** 또는 (멈춤 조건 6가지 해당 시) **[멈춤 보고]**로 종료.
+- **사람이 보는 포인트**: 착수 블록의 범위가 승인한 task와 일치하는가 / [완료 보고]의 binding 대조와 남은 위험 / 권한 없는 완료 표시·Open OQ 중 Granted는 Validator가 error(`PERMISSION_COMPLETION`/`PERMISSION_OPEN_QUESTION`)로 잡는다.
 
 ### 3-6. Validate — 한 검증과 안 한 검증을 구분
 
