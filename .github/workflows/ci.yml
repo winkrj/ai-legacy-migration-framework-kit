@@ -42,8 +42,9 @@ jobs:
           git checkout -qb feature/ai-migration-visitreview
           HOOK="$GITHUB_WORKSPACE/hooks/spec-gate.sh"
           expect() { # expect <기대exit> <payload>
-            echo "$2" | bash "$HOOK" >/dev/null 2>&1
-            actual=$?
+            # `bash -e`에서 죽지 않도록 실패를 || 로 받아 종료 코드를 읽는다.
+            local actual=0
+            echo "$2" | bash "$HOOK" >/dev/null 2>&1 || actual=$?
             [ "$actual" = "$1" ] || { echo "FAIL: 기대 $1, 실제 $actual — $2"; exit 1; }
           }
           EDIT='{"tool_input":{"file_path":"src/Main.java"}}'
