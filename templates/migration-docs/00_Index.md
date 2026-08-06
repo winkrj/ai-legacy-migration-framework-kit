@@ -26,6 +26,7 @@ MCP/Plugin: Deferred
 - `04_Implement.md`
 - `05_Validate.md`
 - `06_Archive.md`
+- `07_Improvements.md` (선택 — 개선 후보가 있을 때. 이관은 동작 보존, 개선은 별도 승인)
 - `99_Open-Questions.md`
 
 ## 현재 게이트

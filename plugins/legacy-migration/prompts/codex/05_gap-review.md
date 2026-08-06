@@ -32,6 +32,7 @@ tags:
 2. 항목마다 분류: `Confirmed Gap` / `Policy Difference` / `Intentional Improvement 후보` / `Open Question` / `No Gap`. **API ID 단위로** 정리한다.
 3. 심각도와 `Blocked By`(Human Policy Decision / Runtime Verification / Missing Evidence / External Owner Confirmation / None)를 지정한다.
 4. 후보 수정안·필요 검증·수정하지 않는 이유를 기록하되 Implementation Permission은 바꾸지 않는다.
+4-1. `Intentional Improvement 후보`는 `07_Improvements.md`(개선 후보 대장)에 기록한다 — 유형·근거 인용·동작 변경 여부·승인 상태(기본 `Not Approved`). **이관은 동작 보존, 개선은 별도 승인**이다.
 5. Open Questions를 임의로 닫지 않는다.
 
 ## 산출물

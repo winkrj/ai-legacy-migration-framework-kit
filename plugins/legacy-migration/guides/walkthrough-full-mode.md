@@ -46,6 +46,8 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 - **AI 프롬프트**: `prompts/codex/02_legacy-discover.md`
 - **핵심 규칙**: 레거시 read-only. 코드/쿼리/테스트에서 **본 것만** Findings에 적는다. Evidence Level을 구분한다 — Confirmed(코드로 확인) / Observed(패턴 관찰) / Inferred(추론, 구현 금지).
 - **인용 없는 근거는 근거가 아니다**: Confirmed는 `파일경로:라인` + 코드 1~3줄 인용이 있을 때만. call chain(JSP→Controller→Service→Client→환경설정)의 각 hop을 직접 열어 확인한다 — 안 연 hop부터 Inferred. 응답값만 보고 로직을 판단하지 않는다.
+- **심문 체크리스트 16문항을 API마다 채운다**: 빈 칸은 "안 물어봤다"는 뜻이다. ⚡ 항목(트랜잭션·N+1·반복 조회·인덱스)에서 나온 개선 여지는 `07_Improvements.md`에 기록하고 **이관 구현에는 섞지 않는다** — 이관은 동작 보존, 개선은 별도 승인.
+- **넓은 탐색은 서브에이전트로**: 화면에서 도달 가능한 endpoint 전수 열거는 `legacy-explorer`(읽기 전용)에 위임해 메인 컨텍스트를 지킨다. Codex 등 서브에이전트가 없으면 별도 스레드로 같은 작업을 한다.
 - **통과 조건**: 진입점→흐름→쿼리 조건이 추적됐고, 확인 못 한 것이 Open Questions에 ID로 등록됨.
 - **함정**: "레거시가 이렇게 하니까 Target도 이래야 한다"는 판단을 여기서 하지 마라. Legacy 관찰 ≠ Target 요구사항.
 
@@ -63,6 +65,7 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
   - **Implementation Permission**: 기본 **Not Granted** — 사람이 명시해야만 바뀐다
 - **차이를 만나면 3분류**: ① Policy Difference (사람이 정할 것) ② Intentional Improvement (개선 후보, 승인 필요) ③ Runtime Verification 필요 (실행해봐야 아는 것)
 - **통과 조건**: 모든 API가 표에 행으로 있고 각 행에 연결 Task ID가 있으며, 모든 차이가 분류됐고, 사람이 결정할 항목이 질문 형태로 정리됨.
+- **사람 승인에 올리기 전 독립 검증**: `spec-gap-hunter`(읽기 전용, 수정 권한 없음)로 스펙↔레거시를 대조해 누락·근거약함·모순을 받는다. **스펙을 쓴 주체가 스스로 검사하지 않는 것**이 핵심 — Codex라면 새 스레드에서 같은 대조를 한다.
 
 ### 3-3. OpenSpec — 계약 승인 (첫 번째 큰 gate)
 
