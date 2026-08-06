@@ -1,10 +1,14 @@
 #!/bin/bash
 # 스펙 승인 게이트 (PreToolUse)
-# 이관 브랜치(feature/ai-migration-*)에서 승인 전에는 docs/migration/, reports/
-# 밖의 파일 수정을 차단한다. 승인 신호는 모드별로:
-#   Light: 02_Spec.md의 구현 승인 체크박스 (- [x] 위 계약대로 구현을 승인한다)
-#   Full : 03_Plan.md의 "Implementation Permission: Granted*" 라인
-# 이관 브랜치가 아니면 아무것도 하지 않는다.
+#
+# 두 가지를 강제한다.
+#  1) 이관 브랜치(feature/ai-migration-*)에서 승인 전에는 docs/migration/, reports/
+#     밖의 파일 수정을 차단한다. 승인 신호는 모드별로:
+#       Light: 02_Spec.md의 구현 승인 체크박스 (- [x] 위 계약대로 구현을 승인한다)
+#       Full : 03_Plan.md의 "Implementation Permission: Granted*" 라인
+#  2) 읽기 전용 서브에이전트 role(legacy_explorer / spec_gap_hunter /
+#     improvement_scout)의 쓰기를 승인 여부와 무관하게 차단한다.
+#     Codex 0.146.0에는 role 단위 도구 제한이 없어 이 훅이 유일한 강제 수단이다.
 #
 # 승인 탐색은 두 단계다. 케이스 폴더명이 브랜치명과 다른 경우(예: 브랜치
 # feature/ai-migration-visitreview + 폴더 case-01-visit-review)에도 승인을
@@ -21,12 +25,60 @@ try:
     ti = d.get("tool_input", {}) or {}
     print(ti.get("file_path", "") or ti.get("notebook_path", ""))
     print((ti.get("command", "") or "").replace("\n", " "))
+    print(d.get("tool_name", "") or "")
+    # Codex 서브에이전트의 PreToolUse 입력에는 agent_type이 들어온다.
+    print(d.get("agent_type", "") or "")
 except Exception:
     pass
 ' 2>/dev/null)
 
 file_path=$(printf '%s' "$parsed" | sed -n '1p')
 shell_command=$(printf '%s' "$parsed" | sed -n '2p')
+tool_name=$(printf '%s' "$parsed" | sed -n '3p')
+agent_type=$(printf '%s' "$parsed" | sed -n '4p')
+
+# 셸 명령에서 파일 쓰기 대상(리다이렉트·tee)을 뽑는다.
+redirect_targets() {
+  printf '%s' "$1" \
+    | grep -oE '(>>?[[:space:]]*|tee[[:space:]]+(-a[[:space:]]+)?)[^[:space:];|&)]+' \
+    | sed -E 's/^(>>?[[:space:]]*|tee[[:space:]]+(-a[[:space:]]+)?)//'
+}
+
+is_write_tool() {
+  case "$(printf '%s' "$1" | tr 'A-Z' 'a-z')" in
+    write | edit | multiedit | notebookedit | apply_patch | applypatch) return 0 ;;
+  esac
+  return 1
+}
+
+# --- 1) 읽기 전용 서브에이전트 role 강제 (승인 여부와 무관) ---
+case "$(printf '%s' "$agent_type" | tr 'A-Z-' 'a-z_')" in
+  legacy_explorer | spec_gap_hunter | improvement_scout)
+    block_readonly() {
+      echo "BLOCKED by legacy-migration spec gate: '${agent_type}'은 읽기 전용 서브에이전트입니다. 파일을 만들거나 고칠 수 없습니다 — 발견한 내용을 인용과 함께 보고하고 종료하세요. 수정은 부모 에이전트가 승인 절차를 거쳐 수행합니다." >&2
+      exit 2
+    }
+
+    is_write_tool "$tool_name" && block_readonly
+
+    if [ -n "${shell_command}" ]; then
+      # 파일을 바꾸는 명령
+      if printf '%s' "$shell_command" | grep -qE '(^|[;&|][[:space:]]*)(rm|mv|cp|touch)[[:space:]]|sed[[:space:]]+-i|git[[:space:]]+(apply|commit|checkout|restore|reset)'; then
+        block_readonly
+      fi
+      # 리다이렉트·tee (임시 경로는 허용)
+      for target in $(redirect_targets "$shell_command"); do
+        case "$target" in
+          /tmp/* | /dev/* | /var/folders/*) continue ;;
+        esac
+        block_readonly
+      done
+    fi
+    exit 0
+    ;;
+esac
+
+# --- 2) 스펙 승인 게이트 ---
 
 # 파싱 실패 또는 대상이 없는 도구 호출은 통과 (fail-open)
 [ -z "${file_path}" ] && [ -z "${shell_command}" ] && exit 0
@@ -64,7 +116,7 @@ has_approval && exit 0
 
 is_writable_before_approval() {
   case "$1" in
-    "$root/docs/migration/"* | "$root/reports/"* | "$root/.claude/"* | "$root/.agents/"*) return 0 ;;
+    "$root/docs/migration/"* | "$root/reports/"* | "$root/.claude/"* | "$root/.codex/"* | "$root/.agents/"*) return 0 ;;
   esac
   return 1
 }
@@ -89,11 +141,7 @@ fi
 # 셸 경유 파일 쓰기(리다이렉트/tee) — 편집 도구를 막고 셸로 우회하는 것을 차단한다.
 # 빌드·테스트·git 등 일반 명령은 통과시킨다.
 if [ -n "${shell_command}" ]; then
-  targets=$(printf '%s' "$shell_command" \
-    | grep -oE '(>>?[[:space:]]*|tee[[:space:]]+(-a[[:space:]]+)?)[^[:space:];|&)]+' \
-    | sed -E 's/^(>>?[[:space:]]*|tee[[:space:]]+(-a[[:space:]]+)?)//')
-
-  for target in $targets; do
+  for target in $(redirect_targets "$shell_command"); do
     case "$target" in
       /dev/*) continue ;;
     esac

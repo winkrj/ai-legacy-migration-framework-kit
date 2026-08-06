@@ -184,6 +184,13 @@ prompts/                  복붙용 시작 프롬프트
 
 ## 변경 이력
 
+### 1.2.0 — Codex 서브에이전트 지원 (1.1.0의 잘못된 전제 정정)
+1.1.0은 "Codex에 서브에이전트가 없을 수 있다"고 가정했으나, **Codex CLI 0.146.0은 서브에이전트를 지원합니다**(`spawn_agent`, `multi_agent` stable). 정정하고 실제 지원을 붙였습니다.
+- **Codex agent role 3종**(`codex/agents/*.toml`) — `legacy_explorer` / `spec_gap_hunter` / `improvement_scout`. 플러그인 매니페스트는 role을 배포하지 못하므로(`skills`/`hooks`/`mcp`/`apps`만 지원) **`~/.codex/agents/` 또는 프로젝트 `.codex/agents/`에 복사**해야 합니다 — 설치 안내는 `codex/agents/README.md`
+- **읽기 전용을 훅으로 강제** — Codex 0.146.0에는 role 단위 `disallowedTools`가 없고 role의 `sandbox_mode="read-only"`도 신뢰할 수 없습니다(spawn 시 부모 permission profile이 마지막에 재적용). 대신 **`PreToolUse` 훅이 서브에이전트에도 적용되고 입력에 `agent_type`이 포함**되므로, spec-gate가 위 세 role의 쓰기(`apply_patch`·셸 리다이렉트·`rm`/`mv`/`sed -i`/`git apply` 등)를 **승인 이후에도** 차단합니다. `/tmp`·`/dev`는 예외
+- Codex SKILL에 **명시적 위임 지시** 추가 — Codex 기본 지침이 "skill이 명시적으로 요청하지 않으면 서브에이전트를 쓰지 말라"이고 "읽기 전용 탐색보다 코드 변경 worker를 선호하라"이므로, 둘 다 명시적으로 뒤집어야 작동합니다
+- hooks matcher에 `apply_patch` 추가, CI에 읽기 전용 role 회귀 테스트 추가
+
 ### 1.1.0 — 분석 깊이와 개선 제안: 산출물 + 서브에이전트 (규칙 증가 0)
 - **심문 체크리스트 16문항**(`01_Discover.md`) — 호출 화면·권한·필터·제외 레코드·정렬 tie-breaker·페이징·날짜·null·에러·트랜잭션·N+1·반복 조회·인덱스·부수효과·외부 연동. 각 행은 답변 + `파일:라인` 인용 또는 미확인(OQ). **빈 칸은 "안 물어봤다"는 뜻** (validator `DISCOVERY_CHECKLIST`)
 - **개선 후보 대장**(`07_Improvements.md`, 선택) — N+1·캐싱·쿼리·트랜잭션·구조·에러 처리. 근거 인용 필수, 기본 `Not Approved`. **이관은 동작 보존, 개선은 별도 승인** — 승인된 개선은 이관 task와 커밋을 분리 (validator `IMPROVEMENT_LEDGER`)

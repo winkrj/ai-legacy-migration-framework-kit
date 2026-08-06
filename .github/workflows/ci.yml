@@ -67,3 +67,12 @@ jobs:
           # 이관 브랜치가 아니면 개입하지 않는다
           git checkout -qb other
           expect 0 "$EDIT"
+
+          # 읽기 전용 서브에이전트 role은 승인 여부·브랜치와 무관하게 쓰기 차단
+          git checkout -q feature/ai-migration-visitreview
+          RO_PATCH='{"tool_name":"apply_patch","agent_type":"legacy_explorer","tool_input":{}}'
+          RO_SHELL='{"tool_name":"Bash","agent_type":"spec_gap_hunter","tool_input":{"command":"echo x > src/A.java"}}'
+          RO_READ='{"tool_name":"Bash","agent_type":"legacy_explorer","tool_input":{"command":"grep -rn foo src/"}}'
+          expect 2 "$RO_PATCH"
+          expect 2 "$RO_SHELL"
+          expect 0 "$RO_READ"
