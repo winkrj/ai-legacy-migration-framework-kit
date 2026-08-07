@@ -1,136 +1,191 @@
 # AI Legacy Migration Kit
 
-> AI에게 레거시 이관을 맡기되, 멋대로 하게 두지 않는 툴킷.
+레거시 기능을 새 프로젝트로 이관할 때, AI가 분석과 스펙 작성까지만 하고 멈추게 하는 툴킷입니다. 사람이 스펙을 승인해야 구현이 시작됩니다.
 
 ```
 레거시 분석  →  스펙 문서  →  ✅ 사람 승인  →  구현  →  검증
-             (여기서 AI가 멈춤)              (승인 범위만)
+             (AI는 여기서 멈춤)            (승인 범위만)
 ```
 
-AI가 레거시 코드를 read-only로 분석해 스펙 문서를 만들면 **거기서 멈춥니다.**
-사람이 스펙을 검토·승인해야만 구현이 시작되고, 승인 전에 코드를 만지려 하면 **훅이 차단합니다.**
-
-Claude Code 플러그인 · Codex 플러그인 제공 · MIT License
+Claude Code · Codex 플러그인 · MIT License
 
 ---
 
-## 왜 쓰나요
+## 무엇을 하나
 
-AI에게 그냥 "이 기능 옮겨줘"라고 하면 생기는 일 → 이 kit의 해결책:
+- 레거시를 read-only로 분석해 동작을 문서화합니다. 근거는 `파일:라인` 인용으로 남깁니다.
+- 이관 후 동작 계약(스펙)을 작성하고 멈춥니다. 사람이 결정할 항목은 질문으로 정리합니다.
+- 승인된 범위만 구현하고, 테스트와 결과를 기록합니다.
+- 승인 전 코드 수정은 훅이 차단합니다.
 
-- 미확인 동작을 그럴듯하게 추측 구현 → **확인한 사실만 기록, 미확인은 사람에게 질문**
-- 스펙 쓰다 말고 멋대로 구현 진행 → **분석/구현 커맨드 분리 + 승인 게이트 훅이 물리적으로 차단**
-- 팀 컨벤션 무시 → **승인된 컨벤션 문서를 스펙·구현에 강제 반영**
-- 사고 나면 복구 어려움 → **격리 브랜치에서만 작업, 롤백 = 브랜치 삭제**
+## 언제 쓰나
+
+**쓰기 좋은 경우**
+- 레거시 화면 하나에 API가 여러 개 걸려 있고, 숨은 조건(soft delete, 정렬 tie-breaker, 페이징 상한)을 놓치기 쉬울 때
+- 이관 결과를 리뷰할 기준선이 필요할 때
+- 결제·인증·개인정보처럼 잘못 옮기면 곤란한 기능일 때
+
+**안 맞는 경우**
+- 파일 한두 개 복사로 끝나는 작업. 문서 비용이 더 큽니다
+- 레거시 없이 새로 만드는 기능
 
 ---
 
 ## 설치
 
-### Claude Code
+**Claude Code**
 
 ```
 /plugin marketplace add winkrj/ai-legacy-migration-framework-kit
 /plugin install legacy-migration@legacy-migration-kit
 ```
 
-### Codex
+**Codex**
 
-```
+```bash
 npx --yes github:winkrj/ai-legacy-migration-framework-kit
 ```
 
-마켓플레이스 등록 + 플러그인 설치를 한 번에 실행합니다. 수동으로 하려면:
+Codex는 서브에이전트 role을 플러그인으로 배포할 수 없어 한 단계가 더 필요합니다. 이관할 프로젝트에서 실행하세요.
 
+```bash
+PLUGIN_DIR=$(codex plugin list | awk '/legacy-migration@legacy-migration-kit/ {print $NF}') && mkdir -p .codex/agents && cp "$PLUGIN_DIR"/codex/agents/*.toml .codex/agents/
 ```
-codex plugin marketplace add winkrj/ai-legacy-migration-framework-kit
+
+Codex 플러그인은 슬래시 커맨드 대신 자연어로 씁니다. "notice-list 이관을 분석 단계부터 시작해줘"처럼 말하면 됩니다.
+
+**업데이트**
+
+```bash
+codex plugin marketplace upgrade legacy-migration-kit
 ```
-
-→ Plugins 화면(`/plugins`)에서 **Legacy Migration Kit** 설치.
-
-> ⚠️ Codex 플러그인은 슬래시 커맨드가 아니라 **자연어**로 씁니다.
-> `/migrate-*` 커맨드를 원하면 [codex/prompts/](codex/prompts/)를 `~/.codex/prompts/`에 복사하세요.
-
-**업데이트**: kit이 갱신되면 `codex plugin marketplace upgrade legacy-migration-kit` /
-Claude Code는 `/plugin marketplace update legacy-migration-kit`
+```
+/plugin marketplace update legacy-migration-kit
+```
 
 ---
 
-## 사용법 — 3단계
+## 사용법
 
-이관할 **신규 프로젝트**에서 AI를 열고:
+이관해서 넣을 프로젝트(레거시 아님)에서 AI를 엽니다.
 
-**① 이관 시작** — 기능명과 레거시 경로만 넣으면 됩니다.
+### 1. 분석과 스펙 작성
 
 ```
 /legacy-migration:start notice-list ~/work/legacy-admin
 ```
 
-→ AI가 분석하고 `docs/migration/notice-list/02_Spec.md`(스펙 초안)까지 만들고 멈춥니다.
+`feature/ai-migration-notice-list` 브랜치를 만들고, 레거시를 분석하고, `docs/migration/notice-list/`에 문서를 만든 뒤 멈춥니다.
 
-**② 스펙 승인** — `02_Spec.md`를 열어 결정 항목에 답하고, 체크박스를 체크합니다.
+### 2. 스펙 검토와 승인
+
+`02_Spec.md`에 이관 후 동작 계약과 "사람이 결정할 것" 목록이 있습니다. 결정 항목을 채우고 체크박스를 체크합니다.
 
 ```markdown
-- [x] 위 계약대로 구현을 승인한다 (승인자: 홍길동 / 날짜: 2026-07-06)
+- [x] 위 계약대로 구현을 승인한다 (승인자: 홍길동 / 날짜: 2026-07-15)
 ```
 
-**③ 구현 지시**
+### 3. 구현
 
 ```
 /legacy-migration:implement notice-list
 ```
 
-→ 승인 범위만 구현 + 테스트 + commit 후 멈춤. push/MR은 당신이 지시할 때만.
+구현 전에 AI가 이번 작업 범위를 먼저 출력합니다.
+
+```
+[구현 착수]
+- 이번 묶음: IMPL-API-001, IMPL-API-002
+- 건드릴 파일·패키지: src/main/java/.../notice/
+- binding 컨벤션: 다른 도메인 repository 직접 호출 금지, 외부 실패를 null로 삼키지 않기
+- 멈춤 조건 해당 없음 확인: 기존 코드 교체 없음 / 스펙 밖 없음 / 공유 코드 없음
+- 이 턴의 끝: [완료 보고]
+```
+
+이후 API 단위로 domain → repository → controller → 테스트까지 구현하고 커밋합니다. push와 MR은 지시할 때만 합니다.
 
 ---
 
-## 명령어
+## 만들어지는 문서
+
+Light 모드(기본)는 3개입니다.
+
+| 파일 | 내용 |
+|---|---|
+| `01_Analysis.md` | 레거시 동작 분석. 16문항 체크리스트와 인용 |
+| `02_Spec.md` | 이관 후 동작 계약. 사람이 승인하는 문서 |
+| `03_Result.md` | 변경 사항 / 설계 판단 / 검증 결과 / 남은 위험 |
+
+Full 모드는 8문서 + OpenSpec change를 만듭니다. API별 상세 스펙, 외부 연동 경로 매트릭스, AC 단위 검증 기록, 개선 후보 대장이 추가되고 Validator CLI가 구조를 검사합니다.
+
+| | Light | Full |
+|---|---|---|
+| 대상 | 일반 기능 | 결제·인증·PII·공유 코드·cutover |
+| 문서 | 3개 | 8개 + OpenSpec |
+| 검증 | 스펙 승인 + 사람 리뷰 | 단계별 Human Gate + Validator CLI |
+
+Full은 더 정석이라서 고르는 게 아니라 위험 비용이 문서 비용보다 클 때 고릅니다. 분석 중 고위험 코드를 만나면 AI가 Light로 계속하지 않고 멈춰 보고합니다.
+
+---
+
+## 동작 방식
+
+**승인 게이트** — PreToolUse 훅이 이관 브랜치에서 파일 수정을 가로챕니다. 스펙에 승인 표시가 없으면 차단하고, 셸 리다이렉트나 heredoc 우회도 막습니다. 빌드·git 명령은 통과합니다. `docs/migration/`과 `reports/`는 승인 전에도 쓸 수 있습니다.
+
+```
+BLOCKED by legacy-migration spec gate: 아직 구현이 승인되지 않았습니다 —
+Light 모드는 02_Spec.md의 구현 승인 체크박스, Full 모드는 03_Plan.md의
+'Implementation Permission: Granted'가 필요합니다.
+```
+
+**인용 근거** — 레거시 근거는 `파일:라인`과 코드 인용만 인정합니다. 산문 요약은 읽지 않고도 쓸 수 있어서 검증이 안 됩니다. 인용이 있으면 사람이 짧게 대조할 수 있습니다.
+
+**심문 체크리스트** — API마다 16문항에 답하게 합니다. 정렬 tie-breaker, 페이징 상한, 트랜잭션 경계, 목록 순회 중 추가 쿼리, null 처리 등입니다. 각 칸은 답변과 인용을 요구하고, 빈 칸은 검사기가 잡습니다. 이 중 성능 관련 문항에서 나온 N+1·캐싱 후보는 `07_Improvements.md`에 따로 기록합니다.
+
+**이관과 개선의 분리** — 개선 후보는 기본값이 `Not Approved`이고, 승인되더라도 이관 task와 커밋을 분리합니다. 옮기는 변경과 고치는 변경이 섞이면 문제가 났을 때 원인을 가릴 수 없습니다.
+
+**서브에이전트** — 탐색과 검증은 읽기 전용 서브에이전트에 맡깁니다. 스펙을 쓴 에이전트는 자기 누락을 찾지 못하므로, 검사는 쓰지 않은 쪽이 합니다. Claude Code는 `disallowedTools`로, Codex는 훅이 `agent_type`을 보고 쓰기를 차단합니다.
+
+---
+
+## 커맨드
 
 | 상황 | Claude Code |
 |---|---|
-| 컨벤션 등록 (프로젝트당 1회 권장) | `/legacy-migration:conventions [참고경로]` |
+| 컨벤션 등록 (프로젝트당 1회) | `/legacy-migration:conventions [참고경로]` |
 | 이관 시작 (분석 + 스펙) | `/legacy-migration:start <기능명> <레거시경로>` |
 | 승인 후 구현 | `/legacy-migration:implement <기능명>` |
-| 문서 검사 | `/legacy-migration:validate <케이스명>` |
-| 고위험 기능 (결제·인증·PII) | `/legacy-migration:full <기능명> <레거시경로>` |
-
-**Codex 플러그인**은 같은 작업을 자연어로:
-
-- "컨벤션을 등록해줘. 참고 프로젝트는 ~/work/team-guide"
-- "notice-list 이관을 분석 단계부터 시작해줘. 레거시 경로는 ~/work/legacy-admin"
-- "notice-list 스펙 승인했어. 승인된 범위만 구현해줘"
-- 뭘 해야 할지 모르겠으면: "이 플러그인으로 뭘 할 수 있어?"
+| 문서 구조 검사 | `/legacy-migration:validate <케이스명>` |
+| 고위험 기능 | `/legacy-migration:full <기능명> <레거시경로>` |
 
 ---
 
-## 📖 상세 가이드
+## 더 알아보기
 
-**[따라하기 가이드 (HTML)](guides/Kit-Usage-Guide.html)** — 설치부터 첫 이관·승인·MR까지,
-모든 입력값과 결과 화면을 한 단계씩 보여줍니다. 파일을 받아 브라우저로 여세요.
+[따라하기 가이드 (HTML)](guides/Kit-Usage-Guide.html) — 설치부터 첫 이관·승인·MR까지 화면 단위로 정리했습니다.
 
-| 더 알아보기 | |
+| | |
 |---|---|
-| 팀 컨벤션 주입 (직접 입력 / 참고 프로젝트 추출) | [convention-adoption-guide](guides/convention-adoption-guide.md) |
-| Full 모드 (결제·인증·PII·공유 코드) | [walkthrough-full-mode](guides/walkthrough-full-mode.md) |
-| Codex 설치 상세 | [codex/INSTALL.md](codex/INSTALL.md) |
+| 팀 컨벤션 주입 | [convention-adoption-guide](guides/convention-adoption-guide.md) |
+| Full 모드 상세 절차 | [walkthrough-full-mode](guides/walkthrough-full-mode.md) |
+| Codex 서브에이전트 설치 | [codex/agents/README.md](codex/agents/README.md) |
 | 문서 검사 CLI | [legacy-migration-validator-cli](https://github.com/winkrj/legacy-migration-validator-cli) |
-| 설치 없이 쓰기 (프롬프트 복붙) | [prompts/start-migration.md](prompts/start-migration.md) |
+| 설치 없이 프롬프트만 | [prompts/start-migration.md](prompts/start-migration.md) |
 
 ---
 
-## 자주 묻는 질문
+## FAQ
 
 <details>
-<summary><b>AI가 승인 전에 코드를 만들려고 하면?</b></summary>
+<summary><b>승인 전에 AI가 코드를 만들려고 하면?</b></summary>
 
-Claude Code에서는 훅이 자동 차단합니다. Codex에서는 훅 동작이 아직 검증되지 않았으니
-분석 세션과 구현 세션을 분리해서 쓰고, 위반하면 "멈춰, 스펙 승인 전이야"라고 하면 됩니다.
+훅이 차단합니다. 편집 도구와 셸 우회를 모두 막고, AI는 멈춰서 승인을 요청합니다.
 </details>
 
 <details>
-<summary><b>이관을 되돌리고 싶어요</b></summary>
+<summary><b>이관을 되돌리려면?</b></summary>
 
-모든 작업이 `feature/ai-migration-<기능명>` 브랜치에 격리되어 있습니다.
+작업이 `feature/ai-migration-<기능명>` 브랜치에만 쌓입니다.
 
 ```bash
 git checkout main && git branch -D feature/ai-migration-<기능명>
@@ -138,45 +193,29 @@ git checkout main && git branch -D feature/ai-migration-<기능명>
 </details>
 
 <details>
-<summary><b>테스트가 실패한 채로 끝났어요</b></summary>
+<summary><b>테스트가 실패한 채로 끝났는데요</b></summary>
 
-정상 동작입니다. kit은 실패를 숨기거나 assertion을 약화하는 것을 금지합니다.
-결과 문서(`03_Result.md`)의 실패 내역을 보고 재지시하세요.
+정상 동작입니다. 실패를 숨기거나 assertion을 약화하는 것을 금지합니다. `03_Result.md`에 실패가 기록되니 확인하고 재지시하세요.
 </details>
 
 <details>
-<summary><b>스펙 문서가 꼭 필요한가요?</b></summary>
+<summary><b>컨벤션은 어떻게 반영되나요?</b></summary>
 
-스펙은 AI 산출물을 검증할 기준선입니다. 스펙 없이는 "구현이 맞는지" 판단할 기준이
-리뷰어의 기억뿐이고, 미확인 동작과 결정 필요 항목이 구현 후에야 드러납니다.
-</details>
-
-<details>
-<summary><b>Light 모드와 Full 모드의 차이는?</b></summary>
-
-| | Light (기본) | Full |
-|---|---|---|
-| 문서 | 3개 | 8개 + OpenSpec |
-| 대상 | 일반 기능 | 결제·인증·PII·공유 코드·cutover |
-| 검증 | 스펙 승인 + 사람 리뷰 | Validator CLI + 단계별 Human Gate |
-
-AI가 분석 중 고위험 코드를 만나면 Light로 계속하지 않고 멈춰서 보고합니다.
+`docs/conventions/`에서 승인(Approved)된 문서만 binding으로 씁니다. 그중 위반 시 반려할 규칙은 `binding-rules.md`에 10줄 이내로 추리고, 구현 직전에 다시 읽습니다. 구현 후에는 규칙별로 지켰는지 대조표를 남깁니다.
 </details>
 
 <details>
 <summary><b>Repository 구조</b></summary>
 
 ```
-.claude-plugin/           Claude Code 플러그인 매니페스트 + 마켓플레이스
-.agents/plugins/          Codex 마켓플레이스
-plugins/legacy-migration/ Codex 플러그인 (스킬 + 템플릿)
-commands/                 Claude Code 슬래시 커맨드
-skills/                   Claude Code 스킬
-hooks/                    스펙 승인 게이트 훅
-codex/                    Codex 커스텀 프롬프트 + 설치 가이드
-templates/                이관 문서 / OpenSpec / 컨벤션 템플릿
-guides/                   상세 가이드
-prompts/                  복붙용 시작 프롬프트
+commands/     Claude Code 슬래시 커맨드
+skills/       Claude Code 스킬
+agents/       Claude Code 서브에이전트 (read-only)
+codex/agents/ Codex agent role (수동 설치)
+hooks/        스펙 승인 게이트 훅
+templates/    이관 문서 · OpenSpec · 컨벤션 템플릿
+guides/       상세 가이드
+plugins/      Codex 플러그인 사본 (sync 스크립트로 생성)
 ```
 </details>
 
@@ -184,81 +223,64 @@ prompts/                  복붙용 시작 프롬프트
 
 ## 변경 이력
 
-### 1.2.0 — Codex 서브에이전트 지원 (1.1.0의 잘못된 전제 정정)
-1.1.0은 "Codex에 서브에이전트가 없을 수 있다"고 가정했으나, **Codex CLI 0.146.0은 서브에이전트를 지원합니다**(`spawn_agent`, `multi_agent` stable). 정정하고 실제 지원을 붙였습니다.
-- **Codex agent role 3종**(`codex/agents/*.toml`) — `legacy_explorer` / `spec_gap_hunter` / `improvement_scout`. 플러그인 매니페스트는 role을 배포하지 못하므로(`skills`/`hooks`/`mcp`/`apps`만 지원) **`~/.codex/agents/` 또는 프로젝트 `.codex/agents/`에 복사**해야 합니다 — 설치 안내는 `codex/agents/README.md`
-- **읽기 전용을 훅으로 강제** — Codex 0.146.0에는 role 단위 `disallowedTools`가 없고 role의 `sandbox_mode="read-only"`도 신뢰할 수 없습니다(spawn 시 부모 permission profile이 마지막에 재적용). 대신 **`PreToolUse` 훅이 서브에이전트에도 적용되고 입력에 `agent_type`이 포함**되므로, spec-gate가 위 세 role의 쓰기(`apply_patch`·셸 리다이렉트·`rm`/`mv`/`sed -i`/`git apply` 등)를 **승인 이후에도** 차단합니다. `/tmp`·`/dev`는 예외
-- Codex SKILL에 **명시적 위임 지시** 추가 — Codex 기본 지침이 "skill이 명시적으로 요청하지 않으면 서브에이전트를 쓰지 말라"이고 "읽기 전용 탐색보다 코드 변경 worker를 선호하라"이므로, 둘 다 명시적으로 뒤집어야 작동합니다
-- hooks matcher에 `apply_patch` 추가, CI에 읽기 전용 role 회귀 테스트 추가
+### 1.2.1 — Codex 훅이 실행되지 않던 문제
 
-### 1.1.0 — 분석 깊이와 개선 제안: 산출물 + 서브에이전트 (규칙 증가 0)
-- **심문 체크리스트 16문항**(`01_Discover.md`) — 호출 화면·권한·필터·제외 레코드·정렬 tie-breaker·페이징·날짜·null·에러·트랜잭션·N+1·반복 조회·인덱스·부수효과·외부 연동. 각 행은 답변 + `파일:라인` 인용 또는 미확인(OQ). **빈 칸은 "안 물어봤다"는 뜻** (validator `DISCOVERY_CHECKLIST`)
-- **개선 후보 대장**(`07_Improvements.md`, 선택) — N+1·캐싱·쿼리·트랜잭션·구조·에러 처리. 근거 인용 필수, 기본 `Not Approved`. **이관은 동작 보존, 개선은 별도 승인** — 승인된 개선은 이관 task와 커밋을 분리 (validator `IMPROVEMENT_LEDGER`)
-- **서브에이전트 3종**(Claude Code `agents/`, 전부 읽기 전용):
-  - `legacy-explorer` — 화면에서 도달 가능한 endpoint 전수 열거(미발견 API 탐지), 메인 컨텍스트 보호
-  - `spec-gap-hunter` — 스펙↔레거시 대조로 누락·근거약함·모순 탐지. `disallowedTools: Write, Edit`로 **고칠 권한 자체가 없음** — 쓴 주체가 자기 검토하는 한계를 구조로 해소
-  - `improvement-scout` — 개선 후보 탐지, 동작 변경 여부 판정
-  - Codex 등 서브에이전트가 없는 환경은 **별도 스레드/순차 패스**로 같은 프로토콜 수행
-- 설계 원칙: 이번 변경은 **규칙을 늘리지 않습니다** — 산출물(양식)과 도구 권한으로 강제합니다
+Codex에서 `PreToolUse hook (failed) — hook exited with code 127`이 반복됐습니다. 127은 명령을 찾지 못했다는 뜻입니다.
 
-### 1.0.1 — 승인 게이트 버그 수정 (한 줄 코드·작업 누락의 실제 원인)
-- **승인 인식 실패 수정**: 케이스 폴더명이 브랜치명과 다르면(예: 브랜치 `feature/ai-migration-visitreview` + 폴더 `case-01-visit-review`) 승인이 있어도 훅이 **영구 차단**하던 버그. 이제 `docs/migration/` 하위 어디서든 승인 신호를 인식한다
-- **셸 우회 차단**: 훅이 편집 도구만 막고 셸은 통과시켜서, 차단당한 에이전트가 `echo >`·heredoc으로 파일을 만들어 **개행·들여쓰기가 깨진 한 줄 코드**가 생기던 경로를 막았다. 빌드·git 등 일반 명령은 영향 없음
-- 구현 절차에 "파일 생성·수정은 편집/패치 도구로, 게이트에 막히면 우회하지 말고 [멈춤 보고]" 추가
-- CI에 12케이스 회귀 테스트 추가(폴더명 불일치·셸 우회 포함)
+Codex용 `hooks.json`의 command가 `"\"${PLUGIN_ROOT}/hooks/spec-gate.sh\""`처럼 따옴표를 포함하고 있었는데, Codex는 훅 명령을 셸을 거치지 않고 실행하기 때문에 따옴표가 경로의 일부로 취급됐습니다. 그래서 **Codex에서는 승인 게이트 훅이 한 번도 동작하지 않았습니다.** Claude Code는 셸을 거치므로 영향이 없습니다.
 
-### 1.0.0 — LLM 원리 기반 재구조화: 규칙을 줄여서 강하게
-- **SKILL 헌법화**: 불변 규칙 7조, ~300단어 (기존 646단어·27불릿). 규칙이 많을수록 각 규칙의 주의(attention) 지분이 줄어 확률적으로만 지켜지는 문제를 해소
-- **착수 블록(암송 장치)**: 구현 시작 시 AI가 `[구현 착수]` 블록(이번 묶음 task/건드릴 파일/binding 요약/멈춤 조건 확인)을 직접 채워 출력 — 규칙을 "지켜라"(억제)에서 "생성하라"(모델이 잘하는 것)로 전환, 규칙이 최신 컨텍스트에 재주입됨
-- **턴 종료를 형식 계약으로**: 부정 금지문 대신 `[완료 보고]`/`[멈춤 보고]` 두 출력 템플릿만 허용 — 부정지시 밀도 30단어당 1회 → implement 기준 1회
-- **대조 예시 추가**: 좋은 구현 턴 vs 나쁜 턴(계층 쪼개기·선언 종료) — 모델은 지시보다 모방을 따름
-- **중복 제거**: 같은 규칙의 8개 사본 정리, implement 절차가 단일 진실. 구현 경로 지시량 1,493 → 909단어
+Codex 쪽 command에서 따옴표를 제거했습니다. 이 버전부터 Codex에서도 승인 전 코드 수정과 읽기 전용 서브에이전트의 쓰기가 실제로 차단됩니다.
 
-### 0.9.1 — 턴 종료 계약
-- 구현 중의 턴은 ① **완료 보고**(실제 변경+검증) ② **멈춤 조건+질문** 두 가지로만 끝난다 — **"진행하겠습니다"류 선언으로 턴을 끝내는 것 금지**, 하겠다고 말했으면 그 턴 안에서 한다
-- 승인이 이미 있으면 사용자의 "그래" 확인을 다시 구하지 않는다
-- 구현 시작 시 implement 절차 재주입(긴 세션에서 규칙이 밀리는 것 방지)
+### 1.2.0 — Codex 서브에이전트 지원
 
-### 0.9.0 — 구현 자율성: 세로 슬라이스 + 묶음 실행
-- **구현 단위를 세로 슬라이스로 정의** — IMPL task 하나(= API 하나)를 domain→repository→controller→테스트까지 한 번에 관통. 계층별로 쪼개 중간 보고하는 패턴("domain 만들었습니다 → controller 만들겠습니다") 금지
-- **묶음 실행이 기본** — Permission Granted된 task가 여러 개면 멈추지 않고 연속 수행, 사용자 보고는 묶음 끝에 한 번 (task별 기록은 각각 유지)
-- **멈춤 조건 명시** — 스펙 밖 동작 / task 없는 대상 / 기존 코드 교체·삭제 / 공유 코드 영향 / 미해결 테스트 실패 / 컨벤션 충돌. 해당 없으면 멈추지 않는다. **묶음 실행이 범위 확장 허가는 아니다**
+Codex가 서브에이전트를 지원하지 않는 줄 알고 Claude Code에만 붙였는데, CLI 0.146.0을 확인해보니 `spawn_agent`가 있고 `multi_agent`가 활성 상태였습니다. Codex용 agent role 3종(`legacy_explorer`, `spec_gap_hunter`, `improvement_scout`)을 추가했습니다.
 
-### 0.8.0 — 범용 코드 품질 원칙을 플러그인에 내장
-- implement의 Pass 2를 5개 점검으로 확장: 책임 분리 / **이름(비즈니스 의도 — `data`·`result`·`temp`·`util`·`manager`류 금지)** / **조건문(보호 절·빠른 반환 우선)** / null 흐름 / 중복·추상화(**성급한 추상화 금지**)
-- 구현 규칙 추가: 요청 범위 초과 리팩터링·기존 API 변경 금지, 줄 수 줄이기용 의미 없는 분리 금지, 주석은 이유·제약만, 기존 일관성 우선
-- 결과 보고 형식 표준화: **변경 사항 / 설계 판단 / 검증 결과 / 남은 위험** (`03_Result.md` 섹션 반영), 테스트는 실패·경계 조건 포함
-- `layer-responsibility` 템플릿에 계층 책임 예시와 "domain vs UseCase 위치 판단" 규칙, `binding-rules`에 Controller 예시 추가
-- 배치 원칙: **프로젝트가 바뀌어도 참인 원칙은 플러그인에, 계층 이름·아키텍처 규칙은 프로젝트 컨벤션에** — 매 요청 프롬프트 복붙 불필요
+Codex에는 role 단위 도구 제한이 없고 role 설정의 `sandbox_mode = "read-only"`도 spawn 시 부모 permission profile이 다시 적용돼 신뢰할 수 없습니다. 대신 PreToolUse 훅이 서브에이전트에도 적용되고 입력에 `agent_type`이 들어오는 점을 이용해, 훅에서 이 세 role의 쓰기를 차단하도록 했습니다.
 
-### 0.7.0 — 내부 모순 제거와 자동화
-- **prompts/codex 7종 전면 재작성** — 한글 + SDD 구조 기준. 기존 프롬프트는 구버전 스펙 구조를 지시해 validator와 모순됐음
-- **spec-gate 훅 Full 모드 지원** — Light 체크박스 외에 `03_Plan.md`의 `Implementation Permission: Granted*`도 승인 신호로 인정 (기존엔 Full 모드 구현이 영구 차단되는 버그)
-- **validator 다중 root 연동** — walkthrough의 검증 명령이 `docs/migration/<case>`와 `changes/<change>`를 함께 검사하도록 갱신 (tasks.md 게이트 실효화)
-- **GitHub Actions CI** — codex 사본 drift 검사, 템플릿·예제 validator 검증, spec-gate smoke test
-- `sync-codex --check` 모드 추가, 예제(01/04/05)를 새 템플릿 패턴(인용 열·2-Pass·AC 표)으로 갱신
+Codex 기본 지침이 "스킬이 명시적으로 요청하지 않으면 서브에이전트를 쓰지 말 것"이고 "read-only 탐색보다 코드 변경 위임을 선호할 것"이어서, 스킬에서 두 가지를 명시적으로 뒤집었습니다.
 
-### 0.6.0 — 스펙 문서를 SDD로: 표는 색인, 계약은 섹션
-- `02_Specify.md`(Full)·`02_Spec.md`(Light)를 **SDD 구조**로 개편: 범위와 용어 / 공통 규칙(컨벤션 참조+예외만) / API 목록(색인 표) / **API별 상세 스펙 섹션** — 목적 / 권한·사전조건 / 시나리오(GWT) / Request / Response(레거시 원 필드 매핑) / 레거시 호출 흐름(인용) / DB·외부 연동 / 변환 규칙 / 오류·빈 결과 / **Acceptance Criteria** / 연결 Task
-- **GWT/AC의 단일 진실은 02_Spec** — OpenSpec `spec.md`는 requirement 색인(포인터)으로 축소, 두 곳 복사로 인한 drift 차단
-- `05_Validate`는 **AC 단위 검증 결과** 기록 — 테스트 통과가 아니라 AC 커버리지가 완료 기준
-- Validator 0.4.0의 `API_DETAIL_SECTION` 룰과 연동 — 표의 API ID마다 상세 섹션·필수 하위 섹션을 기계 검사
-- 깊이는 위험 비례: 단순 CRUD는 항목당 한두 줄, 외부 연동 API는 꽉 채움
+### 1.1.0 — 분석 깊이와 개선 제안
 
-### 0.5.0 — 사용성은 유지하고 품질 강화 (규칙 3개)
-- **인용 없는 근거는 근거가 아니다**: 분석·스펙의 모든 레거시 근거는 `파일:라인` + 코드 인용 필수. 응답값만 보고 로직 판단 금지, call chain 각 hop 직접 확인
-- **binding 컨벤션 10줄**: `binding-rules-template.md` 신규 — 위반=리젝 규칙만 10줄 이내. 구현 직전 재주입 + 규칙별 `지켰음`/`예외` 대조표 기록
-- **2-pass 구현**: Pass 1(동작+테스트) → Pass 2(책임 분리·이름·null 흐름·중복) 분리 수행·기록. 외부 연동 실패를 null로 삼키지 않기
-- **External Route Matrix**: 외부 연동 있는 API만 필수 — 직접 vs 프록시(gpapi류), 환경별 host를 환경설정 인용으로 확정
-- 마찰은 위험에 비례: 일반 API는 기록 부담 거의 없음, 외부 연동에만 표 하나 추가
+분석이 얕은 경우가 있었습니다. 응답값만 보고 로직을 판단하거나 화면이 실제 호출하는 API를 빠뜨렸고, N+1 같은 개선점을 발견해도 기록할 곳이 없었습니다.
 
-### 0.4.0
-- Full 모드 문서를 **한글 기본**으로 재작성 (Status 값·Given/When/Then 등 고정 토큰만 영어 유지)
-- `02_Specify.md`에 **API 단위 상세 스펙 표** 필수화 — API ID / 레거시 근거 / 요청·응답 / DB R·W / 외부연동 / business rule / empty·error / 미결(OQ) / 연결 Task
-- `tasks.md`를 **API ID 기준 `PLAN`/`IMPL`/`VAL` triad**로, `03_Plan`에 API↔requirement↔task 추적표 추가
-- 구현 규칙 강화: task ID 없는 구현 금지, 예상 밖 API·파일 발견 시 중단
-- `npm run sync-codex`로 루트→Codex 사본 동기화(prompts 누락 해소)
-- 문서 구조 검사는 [Validator CLI](https://github.com/winkrj/legacy-migration-validator-cli) 0.2.0(API 표/task ID/승인 게이트 룰)과 함께 동작
+API별 16문항 심문 체크리스트를 추가했습니다. 빈 칸은 "확인하지 않았다"는 뜻이므로 검사기가 경고합니다. 개선 후보는 `07_Improvements.md`에 따로 기록하고 이관 구현과 분리했습니다. 탐색·검증·개선 탐지용 서브에이전트 3종도 추가했습니다.
+
+규칙은 늘리지 않고 산출물 양식과 도구 권한으로 강제했습니다.
+
+### 1.0.1 — 승인 게이트 버그 수정
+
+승인을 했는데도 훅이 계속 차단하는 문제가 있었습니다. 승인 파일을 `docs/migration/<브랜치명>/`에서만 찾았기 때문에, 케이스 폴더명이 브랜치명과 다르면(예: 브랜치 `feature/ai-migration-visitreview`, 폴더 `case-01-visit-review`) 승인 표시를 발견하지 못했습니다.
+
+차단된 AI가 편집 도구 대신 셸(`cat > file <<EOF`)로 우회하면서 줄바꿈이 깨진 파일이 생기거나, 구현을 포기하고 설명만 하는 증상이 여기서 나왔습니다. 프롬프트 문제로 보였지만 원인은 훅이었습니다.
+
+승인 탐색을 폴더명과 무관하게 바꾸고, 셸 우회도 차단했습니다. 회귀 테스트 12개를 CI에 넣었습니다.
+
+### 1.0.0 — 규칙 축소
+
+문제가 생길 때마다 규칙을 추가한 결과 규칙 133개, 지시문 3,350단어가 됐습니다. 그 시점부터 규칙이 지켜지기도 하고 안 지켜지기도 하는 상태가 됐습니다. 모델이 한 턴에 추적할 수 있는 제약 수를 넘어서면 준수가 확률적이 됩니다.
+
+핵심 규칙 7개만 남기고 나머지는 다른 층으로 옮겼습니다. 되돌릴 수 없는 것은 훅으로, 기계 검사가 가능한 것은 Validator로, 보여주면 되는 것은 예시로 옮겼습니다. 금지문 대신 `[완료 보고]`/`[멈춤 보고]` 출력 형식을 정의했고, 구현 시작 시 작업 범위를 직접 쓰게 하는 착수 블록을 넣었습니다. 지시문은 909단어로 줄었습니다.
+
+### 0.9.x — 구현 단위와 턴 종료
+
+계층별로 끊어서 보고하는 문제가 있었습니다. "domain 만들었습니다, 다음은 controller 만들겠습니다" 식이면 직접 구현하는 게 빠릅니다. 또 "진행하겠습니다"라고 선언만 하고 턴을 끝내는 경우도 있었습니다.
+
+구현 단위를 API 하나(domain부터 테스트까지 관통)로 정의하고, 승인된 task가 여러 개면 중간 보고 없이 연속 수행하도록 했습니다. 턴은 완료 보고나 멈춤 보고로만 끝나게 하고, 멈춰야 하는 상황 6가지(스펙 밖 동작, 기존 코드 교체, 공유 코드 영향 등)를 명시했습니다.
+
+<details>
+<summary><b>0.4.0 ~ 0.8.0</b></summary>
+
+**0.8.0** — 매 요청마다 코드 품질 규칙을 프롬프트로 붙여넣던 것을 플러그인에 내장했습니다. 프로젝트와 무관한 원칙(이름, 조건문, 성급한 추상화)은 플러그인에, 계층 책임처럼 프로젝트마다 다른 규칙은 컨벤션 문서로 분리했습니다.
+
+**0.7.0** — AI 지시문은 구버전 문서 구조를 시키는데 검사기는 새 구조를 요구하는 모순이 있었습니다. 지시문 7종을 새로 쓰고 CI를 붙였습니다. Full 모드에서 승인해도 훅이 차단하던 버그도 함께 고쳤습니다.
+
+**0.6.0** — API마다 표 한 줄로 계약을 적게 했더니 요청·응답·변환 규칙이 한 칸에 뭉개져, 구현 시 부족한 부분이 즉흥으로 채워졌습니다. 표는 색인으로 두고 API별 상세 섹션(시나리오·Request·Response·Acceptance Criteria)으로 분리했습니다.
+
+**0.5.0** — 인용 없는 근거를 무효로 하고, binding 컨벤션을 10줄로 추려 구현 직전에 재주입하도록 했습니다. 구현을 동작 구현과 정리 두 단계로 나눴고, 외부 연동이 있는 API에는 환경별 host·프록시 경로 매트릭스를 요구했습니다.
+
+**0.4.0** — Full 모드 문서를 한글로 재작성하고(상태값 등 고정 토큰은 영어 유지), API ID 기준으로 `PLAN`/`IMPL`/`VAL` task를 추적하도록 했습니다.
+
+</details>
 
 ---
 
