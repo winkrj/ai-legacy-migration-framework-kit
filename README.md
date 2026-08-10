@@ -154,6 +154,8 @@ Light 모드는 02_Spec.md의 구현 승인 체크박스, Full 모드는 03_Plan
 
 **완료 게이트** — 구현을 끝내기 전에 `./scripts/verify.sh`(빌드 + 테스트)를 실제로 실행하고, 생성된 `reports/verify-<타임스탬프>.txt`를 완료 보고에 인용해야 합니다. PASS가 아니면 완료 보고를 쓸 수 없습니다. **"테스트했습니다"라는 서술이 아니라 리포트 파일이 완료를 증명합니다.** 스크립트 템플릿은 `templates/target-project/scripts/verify.sh`에 있고 gradle·maven·npm을 자동 탐지합니다.
 
+**컨벤션을 테스트로** — 문서에 적힌 컨벤션 중 기계로 검사 가능한 것(계층 순서, 모듈 경계, 금지 호출·명칭)은 ArchUnit 테스트로 옮깁니다. `verify.sh`가 테스트를 돌리므로 **컨벤션 위반이 빌드 실패**가 됩니다. 스켈레톤은 `templates/target-project/ArchitectureTest.java.template`에 있고 기준 패키지 한 줄만 바꾸면 됩니다. **컨벤션 문서에 이미 있는 규칙만 옮기세요** — 지켜지지 않는 규칙이 빌드를 깨면 나머지 규칙까지 무시당합니다.
+
 **이관과 개선의 분리** — 개선 후보는 기본값이 `Not Approved`이고, 승인되더라도 이관 task와 커밋을 분리합니다. 옮기는 변경과 고치는 변경이 섞이면 문제가 났을 때 원인을 가릴 수 없습니다.
 
 **서브에이전트** — 탐색과 검증은 읽기 전용 서브에이전트에 맡깁니다. 스펙을 쓴 에이전트는 자기 누락을 찾지 못하므로, 검사는 쓰지 않은 쪽이 합니다. Claude Code는 `disallowedTools`로, Codex는 훅이 `agent_type`을 보고 쓰기를 차단합니다.
@@ -164,6 +166,7 @@ Light 모드는 02_Spec.md의 구현 승인 체크박스, Full 모드는 03_Plan
 
 | 상황 | Claude Code |
 |---|---|
+| **프로젝트 세팅 (프로젝트당 1회, 가장 먼저)** | `/legacy-migration:setup` |
 | 컨벤션 등록 (프로젝트당 1회) | `/legacy-migration:conventions [참고경로]` |
 | 이관 시작 (분석 + 스펙) | `/legacy-migration:start <기능명> <레거시경로>` |
 | 승인 후 구현 | `/legacy-migration:implement <기능명>` |
