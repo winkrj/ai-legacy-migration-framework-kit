@@ -27,6 +27,13 @@ Implementation Permission: Not Granted
 
 - None
 
+## 검증 리포트
+
+> `./scripts/verify.sh` 실행 결과. **PASS 리포트 없이 완료로 표시하지 않는다.**
+
+- 리포트: `reports/verify-<타임스탬프>.txt`
+- 결과: Not Run
+
 ## 2-Pass 기록
 
 > Pass 1(동작)과 Pass 2(정리)는 분리해서 수행하고 각각 기록한다. Pass 2 없이 완료 표시하지 않는다.
