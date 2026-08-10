@@ -23,6 +23,7 @@ description: 레거시 프로젝트의 코드나 기획서를 새 프로젝트�
 
 | 상황 | 커맨드 |
 |---|---|
+| **프로젝트 최초 세팅 (프로젝트당 1회)** | `/legacy-migration:setup` |
 | 컨벤션 등록 (직접 입력/참고 프로젝트 추출) | `/legacy-migration:conventions [참고경로]` |
 | 일반 기능 이관 시작 (분석 + 스펙 초안) | `/legacy-migration:start <기능명> <레거시경로>` |
 | 스펙 승인 후 구현 | `/legacy-migration:implement <기능명>` |

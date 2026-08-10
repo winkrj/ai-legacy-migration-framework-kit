@@ -20,7 +20,12 @@ const checkOnly = process.argv.includes("--check");
 // 디렉터리는 mirror(대상 삭제 후 복사)로 stale 파일까지 정리한다.
 const dirSyncs = ["templates", "prompts", "codex/agents"];
 // 파일은 덮어쓰기. Codex 전용 변형이 아닌 것만.
-const fileSyncs = ["guides/walkthrough-full-mode.md", "hooks/spec-gate.sh"];
+const fileSyncs = [
+  "guides/walkthrough-full-mode.md",
+  "hooks/spec-gate.sh",
+  // Codex reference가 ${PLUGIN_ROOT}/scripts/setup-project.sh 를 호출한다.
+  "scripts/setup-project.sh",
+];
 
 function syncDir(rel) {
   const src = join(root, rel);

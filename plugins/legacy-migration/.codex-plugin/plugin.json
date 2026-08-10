@@ -1,6 +1,6 @@
 {
   "name": "legacy-migration",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Evidence-first legacy migration workflow with human approval gates.",
   "author": {
     "name": "winkrj",

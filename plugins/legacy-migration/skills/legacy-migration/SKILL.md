@@ -23,6 +23,7 @@ description: 레거시 코드 분석, 기능 이관, 마이그레이션 스펙 �
 
 | 상황 | reference |
 |---|---|
+| **프로젝트 최초 세팅 (프로젝트당 1회)** | `references/setup.md` |
 | 컨벤션 등록/추출 | `references/conventions.md` |
 | 기능 분석 + 스펙 초안 | `references/start.md` |
 | 승인된 스펙 구현 | `references/implement.md` |
