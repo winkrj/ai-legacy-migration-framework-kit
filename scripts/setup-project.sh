@@ -127,4 +127,11 @@ echo ""
 echo "다음 단계"
 echo "  1) ./scripts/verify.sh 를 한 번 실행해 현재 빌드·테스트가 통과하는지 확인"
 echo "  2) docs/conventions/binding-rules.md 에 위반 시 반려할 규칙을 10줄 이내로 작성하고 승인"
-echo "  3) 이관 시작"
+if [ -n "$BUILD_TOOL" ] && [ "${BUILD_TOOL#maven}" != "$BUILD_TOOL" -o "${BUILD_TOOL#gradle}" != "$BUILD_TOOL" ]; then
+  echo "  3) (선택) 컨벤션을 테스트로 강제하려면 ArchUnit 스켈레톤을 쓴다:"
+  echo "     $KIT_ROOT/templates/target-project/ArchitectureTest.java.template"
+  echo "     — 컨벤션 문서에 이미 있는 규칙만 옮기고, 지켜지지 않는 규칙은 켜지 않는다"
+  echo "  4) 이관 시작"
+else
+  echo "  3) 이관 시작"
+fi
