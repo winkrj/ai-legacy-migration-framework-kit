@@ -17,6 +17,13 @@ jobs:
       - name: Codex 사본 drift 검사
         run: node scripts/sync-codex-plugin.mjs --check
 
+      - name: 구현 지속·hook 실행 계약 검사
+        run: |
+          test "$(jq -r '.hooks.PreToolUse[0].hooks[0].command' plugins/legacy-migration/hooks/hooks.json)" = '/bin/bash ${PLUGIN_ROOT}/hooks/spec-gate.sh'
+          grep -q '실행 지속 게이트' plugins/legacy-migration/skills/legacy-migration/references/implement.md
+          grep -q '진행하겠습니다.*응답을 끝내는 것은 금지' plugins/legacy-migration/skills/legacy-migration/references/implement.md
+          grep -q '부분 패치.*종료 조건이 아니다' plugins/legacy-migration/skills/legacy-migration/references/implement.md
+
       - name: Validator CLI 준비
         run: |
           git clone --depth 1 https://github.com/winkrj/legacy-migration-validator-cli.git /tmp/validator

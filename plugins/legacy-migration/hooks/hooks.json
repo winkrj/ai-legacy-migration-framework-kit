@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${PLUGIN_ROOT}/hooks/spec-gate.sh",
+            "command": "/bin/bash ${PLUGIN_ROOT}/hooks/spec-gate.sh",
             "statusMessage": "Checking migration specification approval"
           }
         ]

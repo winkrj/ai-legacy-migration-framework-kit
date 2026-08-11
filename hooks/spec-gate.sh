@@ -16,6 +16,17 @@
 # 셸 리다이렉트로 우회해 깨진 파일을 만든다.
 set -u
 
+# Codex app의 hook runner는 대화형 shell과 PATH가 다를 수 있다. 필수 명령을 찾지
+# 못한 채 127로 무력화되지 않도록 macOS/Linux의 표준 경로를 명시하고 fail-closed한다.
+PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin${PATH:+:$PATH}"
+export PATH
+for required_command in python3 git sed grep tr; do
+  if ! command -v "$required_command" >/dev/null 2>&1; then
+    echo "BLOCKED by legacy-migration spec gate: 필수 명령 '$required_command'을 찾지 못해 승인 상태를 안전하게 검사할 수 없습니다." >&2
+    exit 2
+  fi
+done
+
 input=$(cat)
 
 parsed=$(printf '%s' "$input" | python3 -c '
