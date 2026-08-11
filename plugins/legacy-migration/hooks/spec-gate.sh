@@ -7,7 +7,7 @@
 #       Light: 02_Spec.md의 구현 승인 체크박스 (- [x] 위 계약대로 구현을 승인한다)
 #       Full : 03_Plan.md의 "Implementation Permission: Granted*" 라인
 #  2) 읽기 전용 서브에이전트 role(legacy_explorer / spec_gap_hunter /
-#     improvement_scout)의 쓰기를 승인 여부와 무관하게 차단한다.
+#     improvement_scout / migration_reviewer)의 쓰기를 승인 여부와 무관하게 차단한다.
 #     Codex 0.146.0에는 role 단위 도구 제한이 없어 이 훅이 유일한 강제 수단이다.
 #
 # 승인 탐색은 두 단계다. 케이스 폴더명이 브랜치명과 다른 경우(예: 브랜치
@@ -44,6 +44,48 @@ redirect_targets() {
     | sed -E 's/^(>>?[[:space:]]*|tee[[:space:]]+(-a[[:space:]]+)?)//'
 }
 
+# 단순 파일 변경 명령의 목적지를 뽑는다. 셸 리다이렉션이 아닌 cp/mv/touch/sed -i
+# 우회도 승인 게이트의 동일한 경로 정책을 적용한다.
+mutation_targets() {
+  printf '%s' "$1" | python3 -c '
+import os, shlex, sys
+
+try:
+    lexer = shlex.shlex(sys.stdin.read(), posix=True, punctuation_chars=True)
+    lexer.whitespace_split = True
+    tokens = list(lexer)
+except Exception:
+    sys.exit(0)
+
+segments, current = [], []
+for token in tokens:
+    if token in {";", "&&", "||", "|", "&"}:
+        if current:
+            segments.append(current)
+            current = []
+    else:
+        current.append(token)
+if current:
+    segments.append(current)
+
+for segment in segments:
+    while segment and "=" in segment[0] and not segment[0].startswith(("/", "./")):
+        segment = segment[1:]
+    if not segment:
+        continue
+    command = os.path.basename(segment[0])
+    args = segment[1:]
+    positional = [arg for arg in args if not arg.startswith("-")]
+    if command in {"cp", "mv", "install"} and positional:
+        print(positional[-1])
+    elif command == "touch":
+        for target in positional:
+            print(target)
+    elif command == "sed" and any(arg == "-i" or arg.startswith("-i") for arg in args) and positional:
+        print(positional[-1])
+' 2>/dev/null
+}
+
 is_write_tool() {
   case "$(printf '%s' "$1" | tr 'A-Z' 'a-z')" in
     write | edit | multiedit | notebookedit | apply_patch | applypatch) return 0 ;;
@@ -53,7 +95,7 @@ is_write_tool() {
 
 # --- 1) 읽기 전용 서브에이전트 role 강제 (승인 여부와 무관) ---
 case "$(printf '%s' "$agent_type" | tr 'A-Z-' 'a-z_')" in
-  legacy_explorer | spec_gap_hunter | improvement_scout)
+  legacy_explorer | spec_gap_hunter | improvement_scout | migration_reviewer)
     block_readonly() {
       echo "BLOCKED by legacy-migration spec gate: '${agent_type}'은 읽기 전용 서브에이전트입니다. 파일을 만들거나 고칠 수 없습니다 — 발견한 내용을 인용과 함께 보고하고 종료하세요. 수정은 부모 에이전트가 승인 절차를 거쳐 수행합니다." >&2
       exit 2
@@ -104,12 +146,25 @@ has_approval() {
     return 1
   fi
 
-  # 2) 폴더 명명이 브랜치명과 다르면 docs/migration 전체에서 승인 신호를 찾는다.
-  #    격리 브랜치에서 한 케이스만 작업하는 전제이며, 승인된 케이스가 하나라도
-  #    있으면 허용한다.
-  grep -qrE "$LIGHT_APPROVAL" "$migration_docs" 2>/dev/null && return 0
-  grep -qrE "$FULL_APPROVAL" "$migration_docs" 2>/dev/null && return 0
-  return 1
+  # 2) 폴더 명명이 다르면 정규화한 branch feature가 포함된 케이스 하나만 찾는다.
+  #    예: visitreview ↔ case-01-visit-review. 무관한 과거 케이스의 승인으로
+  #    현재 branch 잠금이 풀리지 않게 전체 디렉터리의 임의 승인은 인정하지 않는다.
+  local feature_key candidate case_key matched=0 approved=0
+  feature_key=$(printf '%s' "$feature" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]')
+  for candidate in "$migration_docs"/*; do
+    [ -d "$candidate" ] || continue
+    case_key=$(basename "$candidate" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]')
+    case "$case_key" in
+      *"$feature_key"*)
+        matched=$((matched+1))
+        if grep -qrE "$LIGHT_APPROVAL" "$candidate" 2>/dev/null || \
+           grep -qrE "$FULL_APPROVAL" "$candidate" 2>/dev/null; then
+          approved=$((approved+1))
+        fi
+        ;;
+    esac
+  done
+  [ "$matched" -eq 1 ] && [ "$approved" -eq 1 ]
 }
 
 has_approval && exit 0
@@ -129,7 +184,7 @@ absolute_path() {
 }
 
 block() {
-  echo "BLOCKED by legacy-migration spec gate: 아직 구현이 승인되지 않았습니다 — Light 모드는 02_Spec.md의 구현 승인 체크박스, Full 모드는 03_Plan.md의 'Implementation Permission: Granted'가 필요합니다(docs/migration/ 하위 어디든 인식합니다). 승인 전에는 이관 문서(docs/migration/, reports/) 밖의 파일을 만들거나 수정할 수 없습니다. 셸 리다이렉트나 heredoc으로 우회하지 마세요 — 사용자에게 스펙 검토와 승인을 요청하고 멈추세요." >&2
+  echo "BLOCKED by legacy-migration spec gate: 아직 현재 이관 케이스의 구현이 승인되지 않았습니다 — Light는 02_Spec.md 승인 체크박스, Full은 03_Plan.md의 'Implementation Permission: Granted'가 필요합니다. 승인 전에는 이관 문서(docs/migration/, reports/) 밖의 파일을 만들거나 수정할 수 없습니다. 다른 케이스의 승인이나 셸 쓰기로 우회하지 말고 사용자에게 현재 스펙 검토와 승인을 요청하세요." >&2
   exit 2
 }
 
@@ -145,6 +200,9 @@ if [ -n "${shell_command}" ]; then
     case "$target" in
       /dev/*) continue ;;
     esac
+    is_writable_before_approval "$(absolute_path "$target")" || block
+  done
+  for target in $(mutation_targets "$shell_command"); do
     is_writable_before_approval "$(absolute_path "$target")" || block
   done
 fi

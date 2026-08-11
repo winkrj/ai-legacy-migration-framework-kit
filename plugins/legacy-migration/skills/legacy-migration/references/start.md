@@ -18,9 +18,12 @@ argument-hint: <기능명> <레거시-repo-경로>
 4. 결제/인증/개인정보/여러 기능이 공유하는 코드가 관련되면 멈추고 보고한다 — Full 모드 대상이다 (`/legacy-migration:full`).
 5. credential, 실서버 주소, 실데이터를 문서에 넣지 않는다.
 
-[1단계 — 세팅]
+[1단계 — preflight와 세팅]
+- Target 루트에 `docs/migration/`, `docs/conventions/binding-rules.md`, `scripts/verify.sh`, `AGENTS.md`가 있는지 확인한다. 핵심 산출물이 없으면 `references/setup.md`를 먼저 수행한다. 기존 파일은 덮어쓰지 않는다.
+- Approved binding 규칙이 없으면 구현 일관성을 보장할 수 없음을 `사람이 결정할 것`에 blocker로 기록한다. 분석·스펙 초안은 가능하지만 구현 승인 단계로 넘기지 않는다.
 - working tree가 clean인지 확인하고, clean일 때만 브랜치 생성: `feature/ai-migration-<기능명>`
-- `docs/migration/<기능명>/`에 `${CLAUDE_PLUGIN_ROOT}/templates/migration-docs-light/`의 템플릿 3개(01_Analysis.md, 02_Spec.md, 03_Result.md)를 복사한다.
+- 이관 코드를 만들기 전에 `reports/baseline-verify-*.txt` 기준선이 있는지 확인한다. 없으면 `./scripts/verify.sh --baseline`을 실행한다. FAIL이면 실패 범위·명령·기존 원인을 스펙에 blocker로 기록한다. 사람에게 해당 기존 실패를 제외하고 진행해도 된다는 명시적 승인을 받기 전에는 구현하지 않는다.
+- `docs/migration/<기능명>/`에 `${PLUGIN_ROOT}/templates/migration-docs-light/`의 템플릿 3개(01_Analysis.md, 02_Spec.md, 03_Result.md)를 복사한다.
 - 사용한 Kit(플러그인) 버전을 01_Analysis.md 맨 위에 기록한다.
 
 [2단계 — 분석]
@@ -42,4 +45,4 @@ argument-hint: <기능명> <레거시-repo-경로>
 다음을 출력하고 턴을 종료한다:
 1. 분석 요약 3~5줄
 2. "사람이 결정할 것" 목록
-3. 안내: "docs/migration/<기능명>/02_Spec.md를 검토하세요. 결정 항목을 채우고 구현 승인 체크박스를 체크한 뒤 `/legacy-migration:implement <기능명>`을 실행하면 구현이 시작됩니다."
+3. 안내: "docs/migration/<기능명>/02_Spec.md를 검토하세요. 결정 항목을 채우고 구현 승인 체크박스를 직접 체크한 뒤, '승인된 스펙을 구현하고 검증해줘'라고 요청하면 구현이 시작됩니다."

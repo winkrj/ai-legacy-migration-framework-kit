@@ -25,12 +25,13 @@ mkdir -p ~/.codex/agents && cp *.toml ~/.codex/agents/
 | `legacy_explorer` | 화면·설정에서 도달 가능한 endpoint 전수 열거 (미발견 API 탐지) |
 | `spec_gap_hunter` | 스펙 ↔ 레거시 대조로 누락·근거약함·모순 탐지 |
 | `improvement_scout` | N+1·캐싱·트랜잭션·쿼리·구조 개선 후보 탐지 |
+| `migration_reviewer` | 구현 후 승인 스펙·diff·테스트·binding 독립 대조 |
 
 ## 읽기 전용은 무엇이 보장하나
 
 Codex 0.146.0에는 Claude Code의 `disallowedTools` 같은 role 단위 도구 제한이 없고, role TOML의 `sandbox_mode = "read-only"`도 신뢰할 수 없다(spawn 시 부모의 permission profile이 마지막에 다시 적용된다).
 
-**대신 이 kit의 `spec-gate` 훅이 강제한다.** `PreToolUse` 훅은 서브에이전트의 도구 호출에도 적용되고 입력에 `agent_type`이 포함되므로, 훅이 위 세 role의 쓰기 도구 호출(`apply_patch`, 셸 리다이렉트 등)을 **승인 이후에도** 차단한다.
+**대신 이 kit의 `spec-gate` 훅이 강제한다.** `PreToolUse` 훅은 서브에이전트의 도구 호출에도 적용되고 입력에 `agent_type`이 포함되므로, 훅이 위 네 role의 쓰기 도구 호출(`apply_patch`, 셸 리다이렉트 등)을 **승인 이후에도** 차단한다.
 
 즉 보장의 출처는 프롬프트 문구가 아니라 훅이다. 훅이 설치·신뢰(trust)되지 않았다면 이 보장은 없다.
 

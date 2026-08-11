@@ -5,8 +5,9 @@
 #   1. docs/migration, reports, docs/conventions 디렉터리 생성
 #   2. scripts/verify.sh 복사 (빌드 도구 탐지 결과 확인)
 #   3. docs/conventions/binding-rules.md 빈 템플릿 배치
-#   4. Codex를 쓰면 .codex/agents/*.toml 복사 (플러그인이 배포할 수 없는 부분)
-#   5. 마지막에 실제로 동작하는지 검증하고 요약 출력
+#   4. 프로젝트 루트 AGENTS.md 배치 (없을 때만)
+#   5. Codex를 쓰면 .codex/agents/*.toml 복사 (플러그인이 배포할 수 없는 부분)
+#   6. 마지막에 실제로 동작하는지 검증하고 요약 출력
 #
 # 하지 않는 일
 #   - 컨벤션 내용을 생성하지 않는다. 프로젝트의 실제 패턴에서 사람이 채운다.
@@ -47,14 +48,14 @@ copy_if_absent() { # copy_if_absent <원본> <대상> <표시이름>
 }
 
 # 1. 디렉터리
-echo "[1/5] 디렉터리"
+echo "[1/6] 디렉터리"
 for d in docs/migration reports docs/conventions; do
   if [ -d "$TARGET/$d" ]; then note_keep "$d/"; else mkdir -p "$TARGET/$d" && note_new "$d/"; fi
 done
 
 # 2. verify.sh
 echo ""
-echo "[2/5] 검증 스크립트"
+echo "[2/6] 검증 스크립트"
 copy_if_absent "$KIT_ROOT/templates/target-project/scripts/verify.sh" \
                "$TARGET/scripts/verify.sh" "scripts/verify.sh"
 chmod +x "$TARGET/scripts/verify.sh" 2>/dev/null
@@ -69,13 +70,22 @@ fi
 
 # 3. binding-rules
 echo ""
-echo "[3/5] 컨벤션"
+echo "[3/6] 컨벤션"
 copy_if_absent "$KIT_ROOT/templates/conventions/binding-rules-template.md" \
                "$TARGET/docs/conventions/binding-rules.md" "docs/conventions/binding-rules.md"
 
-# 4. Codex agent role
+# 4. 프로젝트 지침
 echo ""
-echo "[4/5] 서브에이전트"
+echo "[4/6] 프로젝트 지침"
+copy_if_absent "$KIT_ROOT/templates/target-project/AGENTS.md.template" \
+               "$TARGET/AGENTS.md" "AGENTS.md"
+if [ -f "$TARGET/AGENTS.md" ] && ! grep -q "Legacy Migration Project Instructions" "$TARGET/AGENTS.md" 2>/dev/null; then
+  echo "  ⚠ 기존 AGENTS.md를 유지했습니다 — 이관 규칙을 병합할지는 사람이 검토하세요"
+fi
+
+# 5. Codex agent role
+echo ""
+echo "[5/6] 서브에이전트"
 if [ "$CODEX_AGENTS" = auto ]; then
   if command -v codex >/dev/null 2>&1 || [ -d "$TARGET/.codex" ]; then CODEX_AGENTS=yes; else CODEX_AGENTS=no; fi
 fi
@@ -89,9 +99,9 @@ else
 fi
 echo "  · Claude Code는 플러그인이 서브에이전트를 직접 제공하므로 복사가 필요 없습니다."
 
-# 5. 검증 — 설치했다고 동작하는 것이 아니다.
+# 6. 검증 — 설치했다고 동작하는 것이 아니다.
 echo ""
-echo "[5/5] 검증"
+echo "[6/6] 검증"
 PROBLEMS=0
 
 if [ -x "$TARGET/scripts/verify.sh" ]; then
@@ -109,7 +119,7 @@ fi
 
 if [ "$CODEX_AGENTS" = yes ]; then
   n=$(ls "$TARGET"/.codex/agents/*.toml 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$n" -ge 3 ]; then echo "  ✓ Codex agent role ${n}개 배치됨"
+  if [ "$n" -ge 4 ]; then echo "  ✓ Codex agent role ${n}개 배치됨"
   else echo "  ✗ Codex agent role이 부족합니다 (${n}개)"; PROBLEMS=$((PROBLEMS+1)); fi
 fi
 
@@ -125,7 +135,7 @@ if [ "$PROBLEMS" -gt 0 ]; then
 fi
 echo ""
 echo "다음 단계"
-echo "  1) ./scripts/verify.sh 를 한 번 실행해 현재 빌드·테스트가 통과하는지 확인"
+echo "  1) ./scripts/verify.sh --baseline 을 실행해 이관 전 빌드·테스트 기준선 저장"
 echo "  2) docs/conventions/binding-rules.md 에 위반 시 반려할 규칙을 10줄 이내로 작성하고 승인"
 if [ -n "$BUILD_TOOL" ] && [ "${BUILD_TOOL#maven}" != "$BUILD_TOOL" -o "${BUILD_TOOL#gradle}" != "$BUILD_TOOL" ]; then
   echo "  3) (선택) 컨벤션을 테스트로 강제하려면 ArchUnit 스켈레톤을 쓴다:"

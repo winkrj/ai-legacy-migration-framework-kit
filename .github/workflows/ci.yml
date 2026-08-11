@@ -49,6 +49,8 @@ jobs:
           }
           EDIT='{"tool_input":{"file_path":"src/Main.java"}}'
           SHELL_WRITE='{"tool_input":{"command":"cat > src/Main.java <<EOF"}}'
+          COPY_CODE='{"tool_input":{"command":"cp template.java src/Main.java"}}'
+          COPY_DOC='{"tool_input":{"command":"cp template.md docs/migration/case-01-visit-review/01_Discover.md"}}'
           BUILD='{"tool_input":{"command":"./gradlew build"}}'
           DOC='{"tool_input":{"file_path":"docs/migration/case-01-visit-review/01_Discover.md"}}'
 
@@ -56,8 +58,10 @@ jobs:
           mkdir -p docs/migration/case-01-visit-review
           expect 2 "$EDIT"
           expect 2 "$SHELL_WRITE"
+          expect 2 "$COPY_CODE"
           expect 0 "$BUILD"
           expect 0 "$DOC"
+          expect 0 "$COPY_DOC"
 
           # 승인 후: 케이스 폴더명이 브랜치명과 달라도 인식해야 한다 (영구 차단 회귀 방지)
           printf 'Implementation Permission: Granted\n' > docs/migration/case-01-visit-review/03_Plan.md
@@ -72,7 +76,9 @@ jobs:
           git checkout -q feature/ai-migration-visitreview
           RO_PATCH='{"tool_name":"apply_patch","agent_type":"legacy_explorer","tool_input":{}}'
           RO_SHELL='{"tool_name":"Bash","agent_type":"spec_gap_hunter","tool_input":{"command":"echo x > src/A.java"}}'
+          REVIEW_WRITE='{"tool_name":"apply_patch","agent_type":"migration_reviewer","tool_input":{}}'
           RO_READ='{"tool_name":"Bash","agent_type":"legacy_explorer","tool_input":{"command":"grep -rn foo src/"}}'
           expect 2 "$RO_PATCH"
           expect 2 "$RO_SHELL"
+          expect 2 "$REVIEW_WRITE"
           expect 0 "$RO_READ"

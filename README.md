@@ -75,7 +75,7 @@ codex plugin marketplace upgrade legacy-migration-kit
 /legacy-migration:setup
 ```
 
-`docs/migration/`·`reports/`·`docs/conventions/` 생성, `scripts/verify.sh` 배치(빌드 도구 자동 탐지), binding 컨벤션 빈 템플릿, Codex면 서브에이전트 role 복사까지 한 번에 합니다. 이미 있는 파일은 건드리지 않고, 마지막에 실제로 동작하는지 검증해 요약을 출력합니다.
+루트 `AGENTS.md`, `docs/migration/`·`reports/`·`docs/conventions/`, `scripts/verify.sh`(빌드 도구 자동 탐지), binding 컨벤션 빈 템플릿, Codex 서브에이전트 role을 한 번에 배치합니다. 이미 있는 파일은 건드리지 않고, 마지막에 실제로 동작하는지 검증해 요약을 출력합니다.
 
 컨벤션 내용은 채워주지 않습니다 — 프로젝트의 실제 패턴에서 사람이 정하고 승인해야 binding이 됩니다.
 
@@ -112,7 +112,17 @@ codex plugin marketplace upgrade legacy-migration-kit
 - 이 턴의 끝: [완료 보고]
 ```
 
-이후 API 단위로 domain → repository → controller → 테스트까지 구현하고 커밋합니다. push와 MR은 지시할 때만 합니다.
+이후 API 단위로 domain → repository → controller → 테스트까지 구현합니다. **commit·push·MR은 지시할 때만** 합니다.
+
+### 4. 최종 검토와 사람 승인
+
+```
+/legacy-migration:review notice-list
+```
+
+읽기 전용 `migration-reviewer`가 **승인 스펙 ↔ 변경 diff ↔ 테스트 ↔ binding 규칙**을 독립 대조합니다. 구현한 주체가 아닌 쪽이 검사하는 게 핵심입니다.
+
+판정은 `READY FOR HUMAN REVIEW` / `FIX REQUIRED` / `BLOCKED` 셋 중 하나이고, **AI는 완료 승인 체크박스를 대신 체크하지 않습니다.** 자동 검증 PASS는 완료가 아니라 사람이 검토할 준비가 됐다는 뜻입니다.
 
 ---
 
@@ -152,13 +162,13 @@ Light 모드는 02_Spec.md의 구현 승인 체크박스, Full 모드는 03_Plan
 
 **심문 체크리스트** — API마다 16문항에 답하게 합니다. 정렬 tie-breaker, 페이징 상한, 트랜잭션 경계, 목록 순회 중 추가 쿼리, null 처리 등입니다. 각 칸은 답변과 인용을 요구하고, 빈 칸은 검사기가 잡습니다. 이 중 성능 관련 문항에서 나온 N+1·캐싱 후보는 `07_Improvements.md`에 따로 기록합니다.
 
-**완료 게이트** — 구현을 끝내기 전에 `./scripts/verify.sh`(빌드 + 테스트)를 실제로 실행하고, 생성된 `reports/verify-<타임스탬프>.txt`를 완료 보고에 인용해야 합니다. PASS가 아니면 완료 보고를 쓸 수 없습니다. **"테스트했습니다"라는 서술이 아니라 리포트 파일이 완료를 증명합니다.** 스크립트 템플릿은 `templates/target-project/scripts/verify.sh`에 있고 gradle·maven·npm을 자동 탐지합니다.
+**기준선·완료 게이트** — 이관 전 `./scripts/verify.sh --baseline`으로 기존 빌드·테스트 상태를 저장하고, 구현 후 `./scripts/verify.sh`를 실제로 실행합니다. 생성된 PASS 리포트를 결과에 인용해야 하며, **"테스트했습니다"라는 서술이 아니라 리포트 파일이 검증을 증명합니다.** 자동 검증 PASS 뒤에도 독립 검토와 사람 최종 승인 전 상태는 `READY FOR HUMAN REVIEW`입니다.
 
 **컨벤션을 테스트로** — 문서에 적힌 컨벤션 중 기계로 검사 가능한 것(계층 순서, 모듈 경계, 금지 호출·명칭)은 ArchUnit 테스트로 옮깁니다. `verify.sh`가 테스트를 돌리므로 **컨벤션 위반이 빌드 실패**가 됩니다. 스켈레톤은 `templates/target-project/ArchitectureTest.java.template`에 있고 기준 패키지 한 줄만 바꾸면 됩니다. **컨벤션 문서에 이미 있는 규칙만 옮기세요** — 지켜지지 않는 규칙이 빌드를 깨면 나머지 규칙까지 무시당합니다.
 
 **이관과 개선의 분리** — 개선 후보는 기본값이 `Not Approved`이고, 승인되더라도 이관 task와 커밋을 분리합니다. 옮기는 변경과 고치는 변경이 섞이면 문제가 났을 때 원인을 가릴 수 없습니다.
 
-**서브에이전트** — 탐색과 검증은 읽기 전용 서브에이전트에 맡깁니다. 스펙을 쓴 에이전트는 자기 누락을 찾지 못하므로, 검사는 쓰지 않은 쪽이 합니다. Claude Code는 `disallowedTools`로, Codex는 훅이 `agent_type`을 보고 쓰기를 차단합니다.
+**서브에이전트** — 탐색·스펙 갭·개선 후보·구현 후 최종 대조는 읽기 전용 서브에이전트에 맡깁니다. 작성자와 검사자를 분리하고, Codex는 훅이 `agent_type`을 보고 쓰기를 차단합니다.
 
 ---
 
@@ -170,8 +180,16 @@ Light 모드는 02_Spec.md의 구현 승인 체크박스, Full 모드는 03_Plan
 | 컨벤션 등록 (프로젝트당 1회) | `/legacy-migration:conventions [참고경로]` |
 | 이관 시작 (분석 + 스펙) | `/legacy-migration:start <기능명> <레거시경로>` |
 | 승인 후 구현 | `/legacy-migration:implement <기능명>` |
+| **구현 후 독립 검토 (사람 최종 승인 준비)** | `/legacy-migration:review <기능명>` |
 | 문서 구조 검사 | `/legacy-migration:validate <케이스명>` |
 | 고위험 기능 | `/legacy-migration:full <기능명> <레거시경로>` |
+
+Codex는 슬래시 커맨드 대신 자연어로 같은 흐름을 씁니다. **두 도구의 단계와 게이트는 동일합니다.**
+
+1. "이 프로젝트를 이관용으로 세팅해줘" → setup
+2. "이 기능을 레거시 경로에서 분석하고 스펙 검토 단계까지 진행해줘" → start / full
+3. *(사람이 스펙 승인)* → "승인 범위를 구현하고 검증해줘" → implement
+4. "최종 검토해줘" → review → *(사람 최종 승인)*
 
 ---
 
@@ -237,6 +255,10 @@ plugins/      Codex 플러그인 사본 (sync 스크립트로 생성)
 ---
 
 ## 변경 이력
+
+### 1.6.0 — Codex end-to-end 이관 루프
+
+Target 초기화에 `AGENTS.md`와 baseline 검증을 추가하고, 구현 후 `migration_reviewer`가 승인 스펙·diff·테스트·binding을 독립 대조한 뒤 사람 최종 승인으로 끝나는 흐름을 추가했습니다. 다른 케이스의 승인으로 잠금이 풀리지 않도록 승인 탐색을 현재 branch와 매칭하고, `cp`·`mv`·`touch`·`sed -i` 쓰기 우회도 승인 게이트에 포함했습니다. Validator 실행 예시의 누락된 `validate` 서브커맨드도 수정했습니다.
 
 ### 1.5.0 — 컨벤션을 테스트로 (ArchUnit)
 

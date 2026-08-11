@@ -10,6 +10,8 @@ argument-hint: <기능명>
 - Full: `03_Plan.md`의 `Implementation Permission: Granted*` 라인과 이번에 구현할 `IMPL-API-NNN` task를 확인한다.
 - 체크가 없으면: "02_Spec.md의 구현 승인 체크박스가 아직 체크되지 않았습니다. 검토 후 체크하고 다시 실행해주세요."를 출력하고 종료한다.
 - "사람이 결정할 것" 미응답 항목이나 `Open` 상태 Open Question이 있으면 목록을 보여주고 종료한다.
+- Approved `docs/conventions/binding-rules.md`가 없으면 구현 일관성을 보장할 수 없으므로 **모드와 무관하게 [멈춤 보고]**한다.
+- PASS `reports/baseline-verify-*.txt`가 없고, 기존 실패 범위가 문서화되고 사람이 승인한 baseline 예외도 없으면 **회귀를 분리할 수 없으므로 [멈춤 보고]**한다.
 
 [1. 착수 블록 — 코드를 만지기 전에 이 블록을 채워 출력한다]
 
@@ -40,7 +42,8 @@ argument-hint: <기능명>
   - 테스트나 assertion을 느슨하게 고쳐서 통과시키지 않는다. 그건 수정이 아니라 은폐다.
 - **PASS 없이는 [완료 보고]를 쓰지 않는다.**
 - Light: `03_Result.md`에 기록. Full: `04_Implement.md`(2-Pass·binding 대조)와 `05_Validate.md`(AC 단위)에 기록하고 tasks.md를 체크한다.
-- commit까지 하고 멈춘다. push/MR은 사용자 지시가 있을 때만.
+- **결과 상태는 `READY FOR HUMAN REVIEW`로 기록한다. 자동 검증 PASS만으로 완료 처리하지 않는다.**
+- **commit·push·MR은 사용자가 명시적으로 요청했을 때만 한다.** 자동으로 commit하지 않는다.
 
 [4. 턴 종료 — 두 형식 중 하나로만 끝난다]
 
@@ -51,7 +54,8 @@ argument-hint: <기능명>
 - 검증 결과: <실행한 테스트와 결과>
 - 검증 리포트: `reports/verify-<타임스탬프>.txt` (PASS)
 - binding 대조: <규칙별 지켰음/예외(사유)>
-- 남은 위험: <확인 못 한 것> + 다음 권장 액션 1개
+- 남은 위험: <확인 못 한 것>
+- 상태: READY FOR HUMAN REVIEW — `/legacy-migration:review`로 독립 검토 후 사람 최종 승인 필요
 ```
 
 ```

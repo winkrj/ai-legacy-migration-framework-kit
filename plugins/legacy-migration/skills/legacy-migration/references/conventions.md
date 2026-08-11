@@ -24,7 +24,7 @@ Target 프로젝트의 컨벤션(코드 컨벤션/아키텍처/비즈니스 규�
 - 참고 프로젝트/문서와 직접 입력이 충돌하면 **직접 입력이 우선**이되, 충돌 사실을 보고한다.
 
 [작성]
-- `${CLAUDE_PLUGIN_ROOT}/templates/conventions/project-conventions-template.md`를 기반으로 `docs/conventions/project-conventions.md`를 작성한다. 영역이 크면 `${CLAUDE_PLUGIN_ROOT}/templates/conventions/`의 영역별 템플릿(dto/paging/exception/date-time/testing 등)으로 분리한다.
+- `${PLUGIN_ROOT}/templates/conventions/project-conventions-template.md`를 기반으로 `docs/conventions/project-conventions.md`를 작성한다. 영역이 크면 `${PLUGIN_ROOT}/templates/conventions/`의 영역별 템플릿(dto/paging/exception/date-time/testing 등)으로 분리한다.
 - Convention Status는 **Draft**로 둔다. Human Decision 섹션의 Decision은 Pending으로 둔다.
 - 어느 소스에서 왔는지(참고 프로젝트 경로/사용자 입력/현재 프로젝트 추출)를 각 규칙의 Evidence에 기록한다.
 

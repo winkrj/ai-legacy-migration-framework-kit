@@ -14,7 +14,7 @@ description: 레거시 프로젝트의 기능을 별도의 신규 프로젝트�
 1. **레거시 저장소는 read-only다.** credential·실서버 주소·실데이터는 어떤 문서에도 넣지 않는다.
 2. **구현은 사람 승인 후에만 한다.** Light: `02_Spec.md`의 구현 승인 체크박스. Full: `03_Plan.md`의 `Implementation Permission: Granted`. 승인 범위는 task ID로 정의되며, task 없는 구현은 없다. (훅이 강제한다)
 3. **인용 없는 근거는 근거가 아니다.** 근거는 `파일경로:라인` + 코드 1~3줄 인용만 인정한다. 인용이 없으면 "미확인"이고, 미확인은 추측해서 구현하지 않는다.
-4. **모든 작업 턴은 [완료 보고] 또는 [멈춤 보고] 형식으로 끝난다.** 형식은 각 단계 reference에 정의돼 있다.
+4. **모든 작업 턴은 단계별 완료/멈춤 형식으로 끝난다.** 구현 검증 PASS는 `READY FOR HUMAN REVIEW`일 뿐이며, 사람 최종 승인 전에는 완료로 표시하지 않는다.
 5. **구현을 시작할 때는 `references/implement.md`를 열고, 그 안의 [구현 착수] 블록을 채워 출력한 뒤 진행한다.** 착수 블록에 쓴 범위가 그 턴의 계약이다.
 6. **멈춤 조건은 여섯 가지다** — 스펙 밖 동작 / task 없는 대상 / 기존 코드 교체·삭제 / 공유 코드 영향 / 미해결 테스트 실패 / 컨벤션·스펙 충돌. 이때만 [멈춤 보고]로 질문하고, 그 외에는 멈추지 않는다.
 7. **push와 PR/MR 생성은 사용자가 명시적으로 요청할 때만 한다.** 테스트 실패를 숨기거나 없는 evidence를 만들지 않는다.
@@ -29,6 +29,7 @@ description: 레거시 프로젝트의 기능을 별도의 신규 프로젝트�
 | 컨벤션 등록/추출 | `references/conventions.md` |
 | 기능 분석 + 스펙 초안 | `references/start.md` |
 | 승인된 스펙 구현 | `references/implement.md` |
+| 구현·검증 후 독립 검토 및 사람 최종 승인 준비 | `references/review.md` |
 | 결제·인증·PII·공유 코드·cutover | `references/full.md` |
 | 이관 문서 구조 검사 | `references/validate.md` |
 
@@ -43,6 +44,7 @@ description: 레거시 프로젝트의 기능을 별도의 신규 프로젝트�
 | Discover 시작 | `legacy_explorer` | 화면·설정에서 도달 가능한 endpoint 전수 열거 (미발견 API 탐지) |
 | Discover 이후 | `improvement_scout` | 개선 후보(N+1·캐싱·트랜잭션·쿼리) 탐지 → `07_Improvements.md`에만 기록 |
 | Specify 종료, 승인 전 | `spec_gap_hunter` | 스펙 ↔ 레거시 대조로 누락·근거약함·모순 탐지 |
+| 구현·자동검증 종료, 사람 최종 승인 전 | `migration_reviewer` | 승인 스펙 ↔ diff ↔ 테스트 ↔ binding 대조 |
 
 호출 규칙:
 - `fork_turns`는 `"none"`(또는 필요한 만큼의 정수 문자열)을 쓴다. `"all"`은 `agent_type` 지정이 거부된다.
@@ -59,3 +61,14 @@ description: 레거시 프로젝트의 기능을 별도의 신규 프로젝트�
 - 템플릿: `${PLUGIN_ROOT}/templates/` (Light 3문서 / Full 8문서 / OpenSpec / 컨벤션 / runtime-evidence)
 - Full 모드 사람용 가이드: `${PLUGIN_ROOT}/guides/walkthrough-full-mode.md`
 - 컨벤션: `docs/conventions/`에서 **Approved** 문서만 binding이다. `binding-rules`(10줄)는 구현 직전 다시 읽는다.
+
+## 사용자에게 보이는 기본 흐름
+
+내부 문서 단계는 유지하되 사용자가 파일명이나 세부 명령을 외울 필요는 없게 한다.
+
+1. "이 프로젝트를 이관용으로 세팅해줘" → setup
+2. "기능을 레거시 경로에서 분석하고 스펙 검토 단계까지 진행해줘" → start/full
+3. 사람이 스펙을 승인한 뒤 "승인 범위를 구현하고 검증해줘" → implement
+4. "최종 검토해줘" → review, 이후 사람 승인
+
+setup 산출물이 없는데 start/full 요청이 오면 먼저 preflight를 수행하고, 기존 파일을 덮어쓰지 않는 setup을 선행한다.

@@ -6,6 +6,8 @@ description: 승인된 스펙 범위 구현 — 착수 블록, 세로 슬라이�
 
 ## 0. 승인 확인 — 통과 못 하면 [멈춤 보고]로 종료
 
+- Approved `docs/conventions/binding-rules.md`가 없으면 구현 일관성을 보장할 수 없으므로 모드와 무관하게 [멈춤 보고]한다.
+- PASS `reports/baseline-verify-*.txt` 또는 기존 실패 범위가 문서화되고 사람이 승인한 baseline 예외가 없으면 회귀를 분리할 수 없으므로 [멈춤 보고]한다.
 - Light: `docs/migration/<기능명>/02_Spec.md`의 구현 승인 체크박스가 `- [x]`인지 확인한다.
 - Full: `03_Plan.md`의 `Implementation Permission: Granted*` 라인과 이번에 구현할 `IMPL-API-NNN` task를 확인한다.
 - "사람이 결정할 것" 미응답 항목이나 `Open` 상태 Open Question이 있으면 목록을 보여주고 종료한다.
@@ -41,7 +43,8 @@ description: 승인된 스펙 범위 구현 — 착수 블록, 세로 슬라이�
 - **PASS 없이는 [완료 보고]를 쓰지 않는다.**
 - 성공 경로 + 빈 결과 + 잘못된 입력 + 외부 실패를 검증한다.
 - Light: `03_Result.md`에 기록. Full: `04_Implement.md`(2-Pass·binding 대조)와 `05_Validate.md`(AC 단위)에 기록하고 tasks.md를 체크한다.
-- commit까지 하고 멈춘다.
+- 결과 상태는 `READY FOR HUMAN REVIEW`로 기록한다. 자동 검증 PASS만으로 완료 처리하지 않는다.
+- commit은 사용자가 명시적으로 요청했을 때만 한다. push/MR도 사용자 지시가 있을 때만 한다.
 
 ## 4. 턴 종료 — 두 형식 중 하나로만 끝난다
 
@@ -53,6 +56,7 @@ description: 승인된 스펙 범위 구현 — 착수 블록, 세로 슬라이�
 - 검증 리포트: `reports/verify-<타임스탬프>.txt` (PASS)
 - binding 대조: <규칙별 지켰음/예외(사유)>
 - 남은 위험: <확인 못 한 것>
+- 상태: READY FOR HUMAN REVIEW — `references/review.md` 독립 검토와 사람 최종 승인 필요
 ```
 
 ```

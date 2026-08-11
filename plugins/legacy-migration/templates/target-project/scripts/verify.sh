@@ -5,7 +5,8 @@
 # 이 스크립트가 통과하지 않으면 작업은 완료가 아니다.
 #
 # 사용법
-#   ./scripts/verify.sh                 빌드 + 단위 테스트
+#   ./scripts/verify.sh                 구현 후 빌드 + 단위 테스트
+#   ./scripts/verify.sh --baseline      이관 전 기준선 빌드 + 단위 테스트
 #   ./scripts/verify.sh --integration   + 통합 테스트 (아래 INTEGRATION_CMD 설정 필요)
 #
 # 결과는 reports/verify-<타임스탬프>.txt 에 남고, 실패하면 비정상 종료한다.
@@ -20,10 +21,12 @@ cd "$(dirname "$0")/.." || exit 1
 ROOT=$(pwd)
 
 WITH_INTEGRATION=0
+REPORT_KIND="verify"
 for arg in "$@"; do
   case "$arg" in
     --integration) WITH_INTEGRATION=1 ;;
-    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
+    --baseline) REPORT_KIND="baseline-verify" ;;
+    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
     *) echo "알 수 없는 옵션: $arg" >&2; exit 2 ;;
   esac
 done
@@ -55,11 +58,12 @@ fi
 # fi
 
 STAMP=$(date +%Y%m%d-%H%M%S)
-REPORT="$ROOT/reports/verify-$STAMP.txt"
+REPORT="$ROOT/reports/$REPORT_KIND-$STAMP.txt"
 mkdir -p "$ROOT/reports"
 
 {
   echo "verify 실행 결과"
+  echo "종류: $([ "$REPORT_KIND" = baseline-verify ] && echo baseline || echo migration)"
   echo "시각: $(date '+%Y-%m-%d %H:%M:%S')"
   echo "통합 테스트 포함: $([ "$WITH_INTEGRATION" = 1 ] && echo yes || echo no)"
   echo "git: $(git rev-parse --abbrev-ref HEAD 2>/dev/null) $(git rev-parse --short HEAD 2>/dev/null)"
