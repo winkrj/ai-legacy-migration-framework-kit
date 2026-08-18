@@ -13,16 +13,18 @@ Production-ready migration platform, domain decision engine 또는 auto-fix 도�
 - AI Agent가 수정하기 전에 scope와 permission을 고정할 때
 - 구현하지 않는 결정과 runtime carry-forward를 안전하게 기록할 때
 
-## Workflow
+## 사용자가 보는 Workflow
 
-`Discover → Specify → OpenSpec → Plan → Implement → Validate → Archive`
+`이관·수정 범위 입력 → 레거시 분석 → Spec·Plan 작성 → 사람 승인 1회 → 구현 → 테스트·검증 → 수정 → 재검증 → 독립 검토`
+
+Full 모드의 내부 문서는 `Discover → Specify → OpenSpec → Plan → Implement → Validate → Archive` 순서로 유지한다. 문서가 여러 개인 이유는 추적성을 높이기 위해서이며, Discover·Specify·Plan 사이에 사람 승인을 추가하기 위해서가 아니다.
 
 1. **Discover**: Legacy/Target source와 behavior evidence를 수집한다.
 2. **Specify**: Confirmed rule, policy difference와 Open Question을 분리한다.
 3. **OpenSpec**: Target project가 소유할 requirement contract를 작성한다.
-4. **Plan**: 승인된 requirement만 task와 validation에 연결한다.
-5. **Implement**: Rule-level Implementation Permission이 있을 때만 수행한다.
-6. **Validate**: Validation Mode와 실제 evidence를 기록한다.
+4. **Plan**: requirement를 task와 validation에 연결하고 이관 범위·허용 수정 범위·테스트 범위를 하나의 승인 패키지로 만든다.
+5. **Implement**: 한 번의 Implementation Permission 이후 승인 task 전체를 지속 Goal로 실행한다.
+6. **Validate**: 대상 테스트와 전체 검증을 수행하고, 실패하면 승인 범위 안에서 수정·재검증한다.
 7. **Archive**: 검증 결과와 carry-forward condition을 보존한다.
 
 ## Teammate Flow
@@ -30,18 +32,18 @@ Production-ready migration platform, domain decision engine 또는 auto-fix 도�
 1. Target repository의 `AGENTS.md`, `CLAUDE.md`, project conventions와 문서 정책을 확인한다.
 2. OpenSpec 및 migration template을 project 규칙에 맞는 위치로 복사한다.
 3. AI Agent에게 read/write scope와 금지 범위를 명시한다.
-4. Human이 policy, Open Question, implementation permission을 결정한다.
-5. 승인된 작업만 실행하고 diff를 review한다.
+4. Human이 승인 패키지의 policy, 범위, task, test와 implementation permission을 한 번 결정한다.
+5. AI Agent가 승인 task를 구현하고 테스트·수정·재검증·독립 검토까지 중단 없이 수행한다.
 6. Validator CLI로 migration docs 구조를 검사한다.
-7. test/runtime evidence와 미검증 항목을 Validate/Archive에 기록한다.
+7. test/runtime evidence와 미검증 항목을 Validate/Archive에 기록하고 사람 최종 검토를 요청한다.
 
 ## AI Agent가 할 수 있는 일
 
 - 승인 범위의 read-only discovery
 - Evidence classification과 document draft
 - 기존 code pattern 기반 convention draft
-- 명시적으로 승인된 작은 변경
-- 승인된 test/Validator 실행과 결과 보고
+- 명시적으로 승인된 task의 구현과 승인 범위 안의 수정
+- 승인된 test/Validator 실행, 실패 수정, 재검증과 결과 보고
 
 AI Agent는 project convention, business policy, implementation permission 또는 production readiness를 승인할 수 없다.
 
@@ -50,7 +52,7 @@ AI Agent는 project convention, business policy, implementation permission 또�
 - Target behavior와 policy difference
 - Project convention 승인
 - Repository write scope
-- Rule-level Implementation Permission
+- 이관 범위·허용 수정 범위·task·test를 묶은 Implementation Permission
 - Runtime/production environment 사용
 - Public evidence와 repository visibility
 - Cutover 및 production readiness
@@ -75,8 +77,8 @@ Validator는 문서 구조와 deterministic boundary를 검사하며 domain corr
 
 - Secret, credential, token, private account와 내부 topology를 기록하지 않는다.
 - 승인 없이 production data 또는 외부 서비스를 사용하지 않는다.
-- Open Question을 구현 scope로 바꾸지 않는다.
-- Auto-fix, source mutation, CI, MCP/Plugin과 executable hook은 포함하지 않는다.
+- `Open` 질문을 구현 scope로 바꾸지 않는다. runtime/cutover 확인은 `Pending Manual Evidence` 또는 `Deferred`로 분류한다.
+- 승인 범위 밖의 자동 수정, source mutation, 외부 서비스 사용은 하지 않는다.
 - 어떤 Validation Mode도 Production Readiness를 자동으로 의미하지 않는다.
 
 ## Minimal Checklist
@@ -84,9 +86,10 @@ Validator는 문서 구조와 deterministic boundary를 검사하며 domain corr
 - [ ] Repository mode와 Source of Truth 확인
 - [ ] Included/Excluded scope 확인
 - [ ] Project conventions 확인 또는 evidence 기반 draft 작성
-- [ ] Human decisions와 Implementation Permission 확인
+- [ ] 범위·task·test가 포함된 사람 승인 1회와 Implementation Permission 확인
 - [ ] OpenSpec과 migration docs 연결
 - [ ] Validation Mode와 evidence 기록
 - [ ] Validator 실행
+- [ ] 실패 수정·재검증과 독립 검토 결과 확인
 - [ ] Carry-forward와 production/cutover blocker 기록
 - [ ] 공개 전 sensitive information 제거

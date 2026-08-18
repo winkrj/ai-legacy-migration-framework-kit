@@ -32,3 +32,11 @@ MCP/Plugin: Deferred
 ## 현재 게이트
 
 <현재 workflow 게이트와 권한>
+
+## 실행 상태 머신
+
+`SCOPE / ANALYZE_AND_SPEC / AWAITING_HUMAN_APPROVAL / EXECUTION_LOOP / READY_FOR_HUMAN_REVIEW / COMPLETE`
+
+- Current State: SCOPE
+- Active Goal: None
+- 승인 후에는 `EXECUTION_LOOP`에서 중간 승인 없이 구현·검증·수정·재검증·독립 검토를 이어간다.

@@ -20,9 +20,14 @@ jobs:
       - name: 구현 지속·hook 실행 계약 검사
         run: |
           test "$(jq -r '.hooks.PreToolUse[0].hooks[0].command' plugins/legacy-migration/hooks/hooks.json)" = '/bin/bash ${PLUGIN_ROOT}/hooks/spec-gate.sh'
+          grep -q '사람 승인 지점은 구현 전 한 번' plugins/legacy-migration/skills/legacy-migration/SKILL.md
+          grep -q 'Goal 기능이 있으면' plugins/legacy-migration/skills/legacy-migration/references/implement.md
+          grep -q 'FIX REQUIRED.*자동 수정' plugins/legacy-migration/skills/legacy-migration/references/review.md
+          grep -q 'Open.*하나라도 있으면 blocker' plugins/legacy-migration/skills/legacy-migration/references/implement.md
           grep -q '실행 지속 게이트' plugins/legacy-migration/skills/legacy-migration/references/implement.md
           grep -q '진행하겠습니다.*응답을 끝내는 것은 금지' plugins/legacy-migration/skills/legacy-migration/references/implement.md
           grep -q '부분 패치.*종료 조건이 아니다' plugins/legacy-migration/skills/legacy-migration/references/implement.md
+          ! grep -q 'Discover, Specify, Plan 각각' plugins/legacy-migration/skills/legacy-migration/references/full.md
 
       - name: Validator CLI 준비
         run: |

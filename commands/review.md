@@ -28,7 +28,7 @@ argument-hint: <기능명>
 에이전트에는 대조에 필요한 경로(스펙 문서, 변경 파일 목록, binding-rules, verify 리포트)를 명시해 넘긴다. 서브에이전트는 대화 맥락을 상속받지 않는다.
 
 [2. 판정]
-- **FIX REQUIRED** — 스펙 누락·범위 이탈·binding 위반·테스트/AC 누락이 있다. **직접 고치지 않는다.** 발견을 근거와 함께 보고하고 `/legacy-migration:implement`의 수정 루프로 돌려보낸다.
+- **FIX REQUIRED** — 스펙 누락·범위 이탈·binding 위반·테스트/AC 누락이 있다. reviewer는 직접 고치지 않지만 부모 구현 agent는 승인된 수정 범위 안이면 같은 Goal에서 자동 수정 → 대상 테스트 → verify → 독립 검토를 반복한다. 새 스펙 결정이나 범위 확대가 필요할 때만 사람에게 보고한다.
 - **BLOCKED** — evidence 또는 사람 결정이 부족하다. 필요한 입력을 질문한다.
 - **READY FOR HUMAN REVIEW** — 자동·독립 검토상 차단 항목이 없다. **완료 승인이 아니다.**
 
@@ -48,5 +48,7 @@ argument-hint: <기능명>
 ```
 
 **사람 최종 승인 체크 전 상태는 완료가 아니라 `READY FOR HUMAN REVIEW`다. AI는 승인 체크박스를 대신 체크하지 않는다.**
+
+`FIX REQUIRED`는 사람에게 중간 승인을 다시 받는 단계가 아니다. 승인 범위 안의 수정이면 final 응답을 보내지 않고 implement 루프로 복귀한다.
 
 commit·push·MR은 사용자가 명시적으로 요청할 때만 한다.

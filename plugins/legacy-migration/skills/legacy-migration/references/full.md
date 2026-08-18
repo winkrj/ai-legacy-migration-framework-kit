@@ -1,5 +1,5 @@
 ---
-description: Full 모드 이관 (결제·인증·PII·공유 코드·cutover — 8문서 + OpenSpec + Human Gate)
+description: 고위험 이관의 분석·스펙·Plan 승인 패키지 작성 (사람 승인 1회)
 argument-hint: <기능명> <레거시-repo-경로>
 ---
 
@@ -8,17 +8,18 @@ argument-hint: <기능명> <레거시-repo-경로>
 Full 모드 대상: 결제, 인증, 개인정보(PII), 여러 기능이 공유하는 코드, production cutover 판단이 필요한 케이스.
 
 [진행 방식]
-1. 단계 절차는 Discover → Specify → OpenSpec → Plan → Implement → Validate → Archive. 각 단계의 AI 절차는 `${PLUGIN_ROOT}/prompts/codex/01~07`을 따르고, 사람용 상세는 `${PLUGIN_ROOT}/guides/walkthrough-full-mode.md`.
+1. 내부 문서 순서는 Discover → Specify → OpenSpec → Plan → Implement → Validate → Archive지만, 사용자에게 보이는 흐름은 **범위 입력 → 분석·스펙·Plan 패키지 → 사람 승인 1회 → 지속 실행 루프**다. 각 단계의 AI 절차는 `${PLUGIN_ROOT}/prompts/codex/01~07`을 따르고, 사람용 상세는 `${PLUGIN_ROOT}/guides/walkthrough-full-mode.md`.
 2. 문서 템플릿: `${PLUGIN_ROOT}/templates/migration-docs/` (8문서) + `${PLUGIN_ROOT}/templates/openspec-change/`. **템플릿 구조가 곧 계약이다** — 섹션을 지우지 말고 채운다. (API 목록 표 + API별 상세 섹션, tasks.md의 PLAN/IMPL/VAL triad, External Route Matrix 등은 Validator가 기계 검사한다.)
-3. 각 단계 산출물마다 Validator CLI로 문서 검사를 돌린다 (`--root docs/migration/<케이스>` + `--root changes/<change>`).
+3. Discover·Specify·Plan을 연속 작성하고 Validator CLI로 승인 패키지를 검사한다 (`--root docs/migration/<케이스>` + `--root changes/<change>`). production 코드는 아직 작성하지 않는다.
 
-[Human Gate — 사람 확인 없이 다음 단계로 넘어가지 않는 지점]
-- Discover, Specify, Plan 각각의 산출물 승인.
-- 정책 차이·응답/에러/날짜/페이징·보안 결정은 전부 Open Question으로 기록하고 사람 결정을 기다린다. **Open OQ가 남아 있으면 Implementation Permission을 Granted하지 않는다.**
-- Implementation Permission은 item(task) 단위로만 부여된다. 기록이 없으면 Not Granted다.
+[단일 Human Gate]
+- 사람은 `03_Plan.md`에서 이관 범위, 허용 수정 범위, 교체·삭제·공유 코드 변경, task, 테스트 범위를 한 번에 검토한다.
+- `Open` 상태는 구현 전에 사람 결정이 필요한 질문에만 사용한다. `Open`이 하나라도 있으면 승인하지 않는다. runtime evidence와 cutover 질문은 `Pending Manual Evidence` 또는 `Deferred`로 분류하며 구현을 막지 않는다.
+- 이미 사용자 결정이나 Approved 컨벤션으로 답이 난 항목은 `Resolved`로 기록하고 다시 묻지 않는다.
+- `Implementation Permission: Granted`는 `03_Plan.md`에 열거된 task 전체와 구현 → 테스트·검증 → 수정 → 재검증 루프를 승인한다. 목록 밖 task는 승인되지 않는다.
 
 [구현 단계]
-- `references/implement.md`의 절차를 그대로 따른다 — 승인 확인 → **[구현 착수] 블록 출력** → 세로 슬라이스 묶음 구현 → **[완료 보고]/[멈춤 보고]**로 종료.
+- 승인 후 `references/implement.md`의 절차를 따른다. 승인 범위를 지속 Goal로 등록하고 구현 → 대상 테스트 → 수정 → 전체 verify → 수정 → 독립 검토를 완료까지 이어간다.
 
 [종료 조건]
-케이스 타입/범위 불명확, 컨벤션 미승인, 정책 미결, 예상 밖 공유 영향, 테스트 환경 unsafe, 민감정보 노출 위험 — 하나라도 해당하면 [멈춤 보고]로 사용자에게 보고한다.
+승인된 수정 범위 밖 변경, 스펙 변경, credential·unsafe 환경, 같은 실패가 3회 연속 진전 없음일 때만 [멈춤 보고]한다. 승인 문서에 포함된 기존 기능 교체·삭제·공유 코드 영향은 멈춤 조건이 아니다.

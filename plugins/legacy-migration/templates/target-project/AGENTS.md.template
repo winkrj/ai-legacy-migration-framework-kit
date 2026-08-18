@@ -9,12 +9,14 @@
 ## Required workflow
 
 1. 구현 전에 `docs/migration/<case>/`의 분석과 스펙을 읽는다.
-2. Light는 `02_Spec.md`의 구현 승인, Full은 `03_Plan.md`의 task별 Implementation Permission을 확인한다.
+2. 사람 승인 지점은 구현 전 한 번이다. Light는 `02_Spec.md`, Full은 `03_Plan.md`에서 이관 범위·허용 수정 범위·task·테스트 범위를 함께 확인한다.
 3. `docs/conventions/`에서 사람에게 Approved된 문서만 binding 규칙으로 사용한다.
 4. 승인된 API/task와 착수 블록에 선언한 파일 범위만 수정한다.
 5. 구현 후 `./scripts/verify.sh`를 실행하고 PASS 리포트를 기록한다.
 6. 독립 검토와 사람의 최종 승인이 끝나기 전에는 완료로 표시하지 않는다.
 7. 구현 착수 후에는 진행 선언이나 부분 패치로 턴을 끝내지 않는다. 검증 PASS 완료 보고 또는 근거가 있는 실제 blocker 보고까지 연속 수행한다.
+8. 승인 후에는 구현 → 대상 테스트 → 수정 → 전체 verify → 수정 → 독립 검토를 하나의 지속 Goal로 수행한다. `그래`, `해`, `완성해`, `계속`은 진행 중 Goal을 이어가라는 뜻이다.
+9. 승인 범위 안의 기존 코드 교체·삭제·공유 코드 수정과 테스트 실패 수정은 중간 승인 없이 진행한다. 범위·스펙 확대, credential·unsafe 환경, 같은 실패 3회 연속 진전 없음일 때만 멈춘다.
 
 ## Project commands
 

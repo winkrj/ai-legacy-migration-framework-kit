@@ -13,5 +13,6 @@
 ## 승인·권한
 
 - Implementation Permission: Not Granted
+- `Granted`는 이 문서에 열거된 IMPL·VAL task를 지속 Goal로 등록하고 구현 → 검증 → 수정 → 재검증을 실행하도록 한 번에 승인한다. 목록 밖 task는 승인하지 않는다.
 - IMPL task는 위 권한이 `Granted`로 바뀐 뒤에만 완료(`- [x]`)로 표시한다.
-- 미해결(Open) Open Question이 있는 동안에는 권한을 `Granted`로 바꾸지 않는다.
+- `Open` 상태는 구현 전 사람 결정이 필요한 질문에만 사용한다. `Open`이 하나라도 있으면 권한을 `Granted`로 바꾸지 않는다. runtime/cutover 질문은 `Pending Manual Evidence` 또는 `Deferred`로 기록한다.

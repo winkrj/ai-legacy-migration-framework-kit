@@ -12,7 +12,7 @@ AI에게 단순히 “이 코드를 최신 스택으로 바꿔줘”라고 맡�
                               사람 최종 승인 → 완료
 ```
 
-Claude Code · Codex · MIT License · Current version `1.6.1`
+Claude Code · Codex · MIT License · Current version `1.7.0`
 
 ---
 
@@ -107,15 +107,35 @@ AI는 레거시를 분석하고 스펙을 작성한 뒤 멈춥니다. 사람이 
 
 ## 전체 실행 흐름
 
+사용자가 보는 기본 흐름은 고위험 Full 모드에서도 동일합니다. Full은 승인 횟수를 늘리지 않고 승인 전에 만드는 분석·스펙과 검증의 깊이를 높입니다.
+
+```text
+이관 범위·허용 수정 범위 입력
+            ↓
+레거시 분석 + 스펙·Plan 작성
+            ↓
+       ✅ 사람 승인 1회
+            ↓
+구현 → 대상 테스트 → 실패 수정 ─┐
+ ↑                              │
+ └──────── 재검증 ←─────────────┘
+            ↓
+전체 verify → 실패 수정 → 재검증
+            ↓
+독립 검토 → FIX REQUIRED면 자동 수정 루프
+            ↓
+READY FOR HUMAN REVIEW → 사람 최종 승인
+```
+
 | 단계 | AI가 하는 일 | 사람이 하는 일 | 주요 산출물 |
 |---|---|---|---|
 | Setup | 프로젝트 지침·문서·검증 환경 배치 | 기존 규칙과 충돌 확인 | `AGENTS.md`, `scripts/verify.sh` |
+| Scope | 이관·수정·테스트 범위를 계약 초안으로 정리 | 옮길 기능과 바꿔도 되는 Target 범위 입력 | `02_Spec.md` 또는 `03_Plan.md` |
 | Discover | 레거시 진입점부터 DB·외부 연동까지 추적 | 누락된 업무 맥락 제공 | `01_Analysis.md` 또는 `01_Discover.md` |
-| Specify | 요청·응답·정렬·오류·정책을 계약으로 작성 | 미결정 항목 결정 및 스펙 승인 | `02_Spec.md` 또는 `02_Specify.md` |
-| Plan | 승인 범위를 API/task 단위로 분해 | Full 모드 task별 구현 권한 승인 | `03_Plan.md`, `tasks.md` |
+| Specify·Plan | 요청·응답·정렬·오류·task를 승인 패키지로 작성 | 범위·스펙·task를 한 번 승인 | `02_Spec.md` 또는 `02_Specify.md`, `03_Plan.md` |
 | Implement | 승인된 task만 세로 슬라이스로 구현 | 실제 blocker에만 결정 제공 | production code, tests |
 | Validate | baseline과 비교해 build·test·통합 검증 | 예외로 인정할 기존 실패 확인 | `reports/verify-*.txt` |
-| Review | 별도 읽기 전용 reviewer가 스펙·diff·테스트 대조 | 발견 사항 검토, 수정 여부 결정 | `03_Result.md` 또는 `05_Validate.md` |
+| Review | 별도 읽기 전용 reviewer가 스펙·diff·테스트 대조, 범위 안 발견은 수정 루프로 반환 | 범위 확대·새 정책 결정만 처리 | `03_Result.md` 또는 `05_Validate.md` |
 | Complete | 결과를 `READY FOR HUMAN REVIEW`로 제출 | 최종 승인 또는 수정 요청 | 사람 최종 승인 기록 |
 
 자동 검증 PASS는 완료가 아닙니다. **독립 검토와 사람 최종 승인까지 끝나야 완료**입니다.
@@ -231,15 +251,15 @@ target-project/
 결제, 인증, 개인정보, 공유 코드, 외부 연동, production cutover처럼 잘못 옮겼을 때 영향이 큰 기능에 사용합니다.
 
 ```text
-Discover 승인 → Specify 승인 → Plan/task 승인 → Implement → Validate → Review → Archive
+Discover·Specify·Plan 작성 → 범위·task 승인 1회 → Implement·Validate·Fix loop → Review → Archive
 ```
 
-Full 모드는 8개 이관 문서와 OpenSpec change를 만들고, API/task별 `Implementation Permission`을 사용합니다. 모든 미확인 사항을 구현 blocker로 만드는 것이 목적은 아닙니다. **이미 사용자가 결정한 내용은 승인 문서에 반영하고, 실제 정책·권한·보안 미결 사항만 Open Question으로 남겨야 합니다.**
+Full 모드는 8개 이관 문서와 OpenSpec change를 만들고, API/task별 `Implementation Permission`을 사용합니다. 모든 미확인 사항을 구현 blocker로 만드는 것이 목적은 아닙니다. **이미 사용자가 결정한 내용은 승인 문서에 반영하고, 실제 정책·권한·보안 미결 사항만 `Open`으로 남깁니다. runtime/cutover 확인은 `Pending Manual Evidence` 또는 `Deferred`로 분류합니다.**
 
 | | Light | Full |
 |---|---|---|
 | 대상 | 일반 기능 | 결제·인증·PII·공유 코드·cutover |
-| 승인 | 스펙 1회 | Discover·Specify·Plan 단계별 |
+| 승인 | 스펙 패키지 1회 | 분석·스펙·Plan 패키지 1회 |
 | 구현 권한 | 승인된 스펙 범위 | 승인된 task 단위 |
 | 문서 | 3개 | 8개 + OpenSpec |
 | 검증 | baseline·verify·독립 검토 | 동일 + Validator·AC 단위 기록 |
@@ -399,6 +419,26 @@ Validator PASS는 **문서 구조가 일관적이라는 뜻**이지, 비즈니�
 ## 문제에서 출발한 변경 이력
 
 이 Kit의 버전은 기능을 임의로 늘린 기록이 아니라, 실제 이관 작업에서 실패한 지점을 재현하고 보완한 기록입니다.
+
+### 1.7.0 — 범위 승인 뒤에는 구현·검증·수정을 끊지 않는다
+
+**문제**
+
+- 사용자가 원하는 흐름은 `범위 입력 → 분석·스펙 → 사람 승인 → 구현 → 테스트·수정 반복`이었지만, Full 모드는 Discover·Specify·Plan마다 승인을 요구해 실제 작업이 자주 끊겼습니다.
+- 구현 단계에서 새로운 독립 기능을 다시 분석하면서 “아직 구현 중입니다”라는 보고만 반복했습니다.
+- 전체 verify가 PASS해도 승인 task와 AC가 남아 있는데 중간 final 응답을 보냈습니다.
+- `그래`, `해`, `완성해` 같은 짧은 후속 요청에서 이관 skill의 지속 실행 계약이 약해졌습니다.
+- 독립 검토의 `FIX REQUIRED`가 사람에게 다시 돌아가 자동 수정 루프가 끊겼습니다.
+
+**개선**
+
+- Light/Full 모두 사람 승인 지점을 구현 전 한 번으로 통일했습니다. Full은 승인 횟수 대신 승인 패키지의 깊이를 높입니다.
+- 스펙에 이관 범위, 허용 수정 범위, 교체·삭제 허용, 테스트 범위, 범위 제외를 함께 기록합니다.
+- 승인은 열거된 task의 구현 → 대상 테스트 → 수정 → 전체 verify → 수정 → 독립 검토까지 지속 실행하도록 허가합니다.
+- 승인된 범위 안의 기존 코드 교체·삭제·공유 코드 수정은 더 이상 blocker가 아닙니다.
+- 구현 시작 시 승인 task 전체를 `READY FOR HUMAN REVIEW`로 만드는 지속 Goal을 생성하고, 짧은 후속 답변도 같은 Goal의 continue로 처리합니다.
+- 같은 실패가 3회 연속 진전이 없을 때만 멈추며, 서로 다른 실패를 순차 해결하는 것은 계속합니다.
+- 독립 검토가 `FIX REQUIRED`를 내도 승인 범위 안이면 자동 수정·재검증·재검토 루프로 돌아갑니다.
 
 ### 1.6.1 — “진행하겠습니다”라고 말하고 멈추는 문제
 
@@ -571,7 +611,7 @@ examples/            Validator와 이관 문서 예제
 <details>
 <summary><b>AI가 계속 “진행하겠습니다”라고만 하고 멈춰요.</b></summary>
 
-`1.6.1` 이상으로 업데이트하고 새 task를 여세요. 구현 요청에 “지속 목표로 등록하고 PASS 완료 또는 실제 blocker까지 중간 final로 종료하지 마”라고 명시할 수 있습니다. hook failure가 보이면 편집을 계속하지 말고 설치 버전과 hook 경로부터 확인해야 합니다.
+`1.7.0` 이상으로 업데이트하고 새 task를 여세요. 승인 문서의 체크 또는 `Implementation Permission: Granted`가 지속 Goal 실행 권한을 함께 부여하므로 매번 “계속”을 반복할 필요가 없습니다. hook failure가 보이면 편집을 계속하지 말고 설치 버전과 hook 경로부터 확인해야 합니다.
 </details>
 
 <details>

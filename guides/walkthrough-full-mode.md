@@ -1,6 +1,6 @@
-# Full 모드 상세 가이드 — 위험한 이관을 단계별 gate로
+# Full 모드 상세 가이드 — 깊은 분석과 단일 승인으로
 
-결제·인증·개인정보·공유 코드·cutover가 걸린 이관을 위한 상세 절차다. Light 모드(3-file)와 달리 **단계마다 문서와 사람 gate가 있고, Validator CLI로 문서 계약을 기계 검사한다.**
+결제·인증·개인정보·공유 코드·cutover가 걸린 이관을 위한 상세 절차다. Light보다 문서와 검증은 깊지만 사람 승인 지점은 동일하게 구현 전 한 번이다. Discover·Specify·Plan은 하나의 승인 패키지이며 Validator CLI가 구조를 기계 검사한다.
 
 ## 0. Full 모드로 와야 하는지부터 확인
 
@@ -19,7 +19,7 @@
 | | Light | Full |
 |---|---|---|
 | 문서 | 3개 | **8개** (`templates/migration-docs/`) + OpenSpec 3개 (`templates/openspec-change/`) |
-| 승인 | Spec 체크박스 1개 | **단계별 Human Gate** (아래 §4) |
+| 승인 | Spec 체크박스 1개 | **분석·스펙·Plan 패키지 승인 1회** |
 | 검증 | 사람 리뷰 | 사람 리뷰 + **Validator CLI** (문서 계약 기계 검사) |
 | 구현 권한 | 스펙 승인 = 구현 승인 | **rule/item 단위 Implementation Permission** (없으면 Not Granted) |
 | 종료 | Result 기록 | **Archive 문서** + carry-forward 표 (archive 차단 vs production 차단 구분) |
@@ -34,8 +34,11 @@
 ## 3. 전체 흐름 — 단계별 상세
 
 ```text
-Discover → Specify → OpenSpec → Plan → Implement → Validate → Archive
-   (읽기)    (분류)    (계약승인)  (권한)   (승인범위만)  (증거)     (정직한 종료)
+범위 입력 → Discover → Specify → OpenSpec → Plan → ✅ 사람 승인 1회
+                                               ↓
+               독립 검토 ← 재검증 ← 수정 ← 테스트·검증 ← Implement
+                    ↓ FIX REQUIRED                    ↑ 실패
+                    └─────────────────────────────────┘
 ```
 
 각 단계: **무엇을 만들고 → 누가 결정하고 → 무엇이 통과 조건인지**.
@@ -67,25 +70,25 @@ Discover → Specify → OpenSpec → Plan → Implement → Validate → Archiv
 - **통과 조건**: 모든 API가 표에 행으로 있고 각 행에 연결 Task ID가 있으며, 모든 차이가 분류됐고, 사람이 결정할 항목이 질문 형태로 정리됨.
 - **사람 승인에 올리기 전 독립 검증**: `spec-gap-hunter`(읽기 전용, 수정 권한 없음)로 스펙↔레거시를 대조해 누락·근거약함·모순을 받는다. **스펙을 쓴 주체가 스스로 검사하지 않는 것**이 핵심 — Codex라면 새 스레드에서 같은 대조를 한다.
 
-### 3-3. OpenSpec — 계약 승인 (첫 번째 큰 gate)
+### 3-3. OpenSpec — 승인 패키지의 계약 색인
 
 - **산출물**: `changes/<change-name>/` 아래 `proposal.md` + `tasks.md` + `specs/<capability>/spec.md`
 - **AI 프롬프트**: `prompts/codex/04_openspec-generate.md`
 - **tasks.md는 API ID 기준**: `02_Specify.md`의 각 API ID마다 `PLAN-API-NNN`(계획·권한) / `IMPL-API-NNN`(구현) / `VAL-API-NNN`(검증) 세 task를 만든다. NNN은 API ID와 같은 번호로 맞추고, 각 task는 어떤 requirement/API spec에 연결되는지 적는다. 세 종류가 다 없으면 Validator가 error(`TASK_ID_TRIAD`)를 낸다.
 - **spec.md는 포인터**: 시나리오(GWT)와 Acceptance Criteria의 단일 진실은 `02_Specify.md`의 API별 상세 섹션이다. `specs/<capability>/spec.md`에는 requirement 색인(한 줄 요약 + API ID + 계약 위치)만 남긴다 — **GWT를 두 곳에 복사하지 않는다.**
 - **작성 요령**: **미해결 결정은 requirement로 위장하지 말고** `[DECISION PENDING]`으로 표시하거나 Open Question으로 뺀다. Non-goals(안 하는 것)를 명시한다.
-- **통과 조건**: 사람이 결정 항목을 모두 결정하고 proposal을 승인. 이때 `[DECISION PENDING]` → 결정 반영, runtime 확인 필요한 것만 `[RUNTIME VERIFICATION PENDING]`으로 남김.
+- **통과 조건**: 결정 항목과 runtime/cutover 이월 항목이 분류되고 Plan과 함께 한 번에 검토할 준비가 됨. 이 단계에서 별도 사람 승인을 요구하지 않는다.
 
 ### 3-4. Plan — 승인된 것만 작업으로
 
 - **산출물**: `03_Plan.md` (Status / Implementation Plan / Test Plan / Risks)
-- **핵심 작업**: Requirement ↔ Plan item ↔ Test 추적표. **승인 안 된 requirement는 plan에 넣지 않는다.** 공유 코드에 닿는 항목은 별도 표시 + 별도 승인.
-- **통과 조건**: 각 구현 항목에 Implementation Permission이 명시됨 (item 단위). 문서 전체에 대한 포괄 승인은 인정 안 됨.
+- **핵심 작업**: 이관 범위·허용 수정 범위·교체/삭제 허용·Requirement ↔ Plan item ↔ Test 추적표를 한 문서에 모은다. 공유 코드 변경도 허용 수정 범위에 구체적으로 적는다.
+- **통과 조건**: 사람은 이 패키지를 한 번 검토하고 열거된 task에 `Implementation Permission: Granted`를 부여한다. 이 승인은 목록 밖 task를 허용하지 않는다.
 
 ### 3-5. Implement — 권한 있는 것만
 
 - **산출물**: 코드 + `04_Implement.md` (상태 / 구현 메모 / 2-Pass 기록 / Binding 대조 / 변경 파일)
-- **AI 절차는 implement 커맨드/reference가 단일 진실이다**: 승인 확인 → **[구현 착수] 블록 출력**(이번 묶음 task ID·건드릴 파일·binding 요약·멈춤 조건 확인) → 승인된 `IMPL-API-NNN`들을 **세로 슬라이스**(API 하나를 domain→repo→controller→테스트 관통)로 **중간 보고 없이 연속 구현** → 정리 pass → **[완료 보고]** 또는 (멈춤 조건 6가지 해당 시) **[멈춤 보고]**로 종료.
+- **AI 절차는 implement reference가 단일 진실이다**: 승인 범위를 지속 Goal로 등록 → task별 세로 슬라이스 구현 → 대상 테스트 → 실패 수정 → 전체 verify → 독립 검토. `FIX REQUIRED`가 범위 안이면 같은 루프로 자동 복귀한다.
 - **사람이 보는 포인트**: 착수 블록의 범위가 승인한 task와 일치하는가 / [완료 보고]의 binding 대조와 남은 위험 / 권한 없는 완료 표시·Open OQ 중 Granted는 Validator가 error(`PERMISSION_COMPLETION`/`PERMISSION_OPEN_QUESTION`)로 잡는다.
 
 ### 3-6. Validate — 한 검증과 안 한 검증을 구분
@@ -115,17 +118,16 @@ legacy-validator validate \
   - **Blocks Production/Cutover**: archive는 되지만 운영 전환은 못 한다 (예: runtime evidence 미확보)
 - **통과 조건**: Verified/Not Verified 구분, carry-forward에 owner와 Required Before 기재, Archive ≠ production readiness 명시.
 
-## 4. Human Gate 요약 — 사람이 결정하는 것
+## 4. 사람 승인 경계
 
-| 시점 | 결정할 것 |
+| 시점 | 사람이 결정할 것 |
 |---|---|
-| 시작 전 | Case type·scope, 브랜치/rollback, 민감정보 정책 |
-| Specify 후 | Legacy 보존 vs Intentional Improvement, Policy Difference별 owner |
-| OpenSpec | API/응답 경계, 에러 계약, 날짜/시간(형식·timezone·경계), 페이징(기본/최대/정렬), 보안·개인정보 |
-| Plan | item별 Implementation Permission, 공유 코드 영향 승인, test/build 실행 허용 |
-| Validate | Validation Mode 승인, evidence 인정, 환경 blocker의 carry-forward 승인 |
-| Archive | Archive decision, carry-forward 승인 |
-| 별도 | **Production/Cutover 승인 — Archive나 Validator PASS가 이걸 자동 승인하지 않는다** |
+| 범위 입력 | 이관 범위와 허용 수정 범위 초안 제공 |
+| 구현 전 단일 승인 | API 계약, 정책 차이, 교체·삭제·공유 코드 변경, task, 테스트 범위를 한 번 승인 |
+| 최종 검토 | verify·독립 검토·남은 위험을 보고 완료 승인 |
+| 별도 | **Production/Cutover 승인 — 구현·Archive·Validator PASS가 자동 승인하지 않는다** |
+
+`Open` 상태는 구현 전에 사람 결정이 필요한 질문에만 사용하며 하나라도 있으면 구현을 막는다. runtime evidence와 production/cutover 확인은 `Pending Manual Evidence` 또는 `Deferred`로 이월한다.
 
 ## 5. Validator를 첫 번에 통과하는 법 (실전 함정 모음)
 
