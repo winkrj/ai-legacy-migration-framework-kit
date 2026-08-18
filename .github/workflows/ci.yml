@@ -29,6 +29,40 @@ jobs:
           grep -q '부분 패치.*종료 조건이 아니다' plugins/legacy-migration/skills/legacy-migration/references/implement.md
           ! grep -q 'Discover, Specify, Plan 각각' plugins/legacy-migration/skills/legacy-migration/references/full.md
 
+      - name: Claude 플러그인 실행 계약 검사
+        run: |
+          # Claude Code가 실제로 로드하는 것은 commands/ 와 루트 skills/ 다.
+          # 이 파일들은 Codex 사본으로 동기화되지 않으므로 따로 검사한다.
+          test "$(jq -r '.hooks.PreToolUse[0].hooks[0].command' hooks/hooks.json)" = '"${CLAUDE_PLUGIN_ROOT}/hooks/spec-gate.sh"'
+          test -x hooks/spec-gate.sh
+          for f in commands/*.md agents/*.md skills/legacy-migration/SKILL.md; do
+            head -1 "$f" | grep -qx -- '---' || { echo "frontmatter 없음: $f"; exit 1; }
+          done
+          # 참조하는 ${CLAUDE_PLUGIN_ROOT} 경로가 실제로 존재하는지
+          grep -rho '${CLAUDE_PLUGIN_ROOT}/[A-Za-z0-9_./-]*' commands/ skills/ \
+            | sed 's|${CLAUDE_PLUGIN_ROOT}/||' | sed 's|/$||' | sort -u \
+            | while read -r p; do test -e "$p" || { echo "없는 경로 참조: $p"; exit 1; }; done
+          # 단일 승인 + 지속 실행 계약 (Codex references와 동일 의미)
+          grep -q '사람 승인 지점은 구현 전 한 번' skills/legacy-migration/SKILL.md
+          grep -q '실행 지속 게이트' commands/implement.md
+          grep -q 'Goal 기능이 있으면' commands/implement.md
+          grep -q '진행하겠습니다.*응답을 끝내는 것은 금지' commands/implement.md
+          grep -q '부분 패치.*종료 조건이 아니다' commands/implement.md
+          grep -q 'Open.*하나라도 있으면 blocker' commands/implement.md
+          grep -q 'FIX REQUIRED.*자동 수정' commands/review.md
+          # `! grep`은 set -e에서 실패를 무시하므로 명시적으로 exit 한다
+          if grep -q 'Discover, Specify, Plan 각각' commands/full.md; then
+            echo "Full 모드에 단계별 승인이 되살아났습니다"; exit 1
+          fi
+          # 폐기된 6가지 멈춤 조건이 되살아나면 교체·삭제·공유 코드가 다시 blocker가 된다
+          if grep -q '6가지 중 해당 항목' commands/implement.md; then
+            echo "폐기된 6가지 멈춤 조건이 되살아났습니다"; exit 1
+          fi
+          # 버전은 세 manifest가 항상 같아야 한다
+          test "$(jq -r .version .claude-plugin/plugin.json)" \
+             = "$(jq -r .version plugins/legacy-migration/.codex-plugin/plugin.json)"
+          test "$(jq -r .version .claude-plugin/plugin.json)" = "$(jq -r .version package.json)"
+
       - name: Validator CLI 준비
         run: |
           git clone --depth 1 https://github.com/winkrj/legacy-migration-validator-cli.git /tmp/validator

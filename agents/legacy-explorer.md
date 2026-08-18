@@ -2,6 +2,7 @@
 name: legacy-explorer
 description: 레거시 저장소를 넓게 읽어 특정 메뉴·기능에서 도달 가능한 endpoint와 호출 흐름을 빠짐없이 열거한다. 이관 분석(Discover) 단계에서 "이 화면이 호출하는 API를 전부 찾아줘", "숨은 진입점이 있는지 확인해줘" 같은 탐색이 필요할 때 사용한다. 파일을 수정하지 않는다.
 tools: Read, Grep, Glob
+disallowedTools: Write, Edit, MultiEdit, NotebookEdit
 model: sonnet
 ---
 
